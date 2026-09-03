@@ -113,7 +113,7 @@ ul.clean li{padding:10px 13px;background:#f6f7f9;border-radius:10px;margin:6px 0
 </nav>
 <div class="wrap">
   <section id="t1">
-    <div class="hero"><h1>这台机，值不值得收？</h1><p>打字、语音、截图都行，缺什么我会问你。</p></div>
+    <div class="hero"><h1>这台机，值不值得收？</h1><p>把闲鱼卖家的描述贴进来，我帮你判断能不能收、有没有坑。</p></div>
     <div class="chips">
       <button class="chip" onclick="newEval('iPhone 13 128G 国行无锁 95新 电池90 无拆修 标价 1250 可小刀')">国行好价</button>
       <button class="chip" onclick="newEval('13 Pro 2800')">只给型号和价</button>
@@ -133,8 +133,10 @@ ul.clean li{padding:10px 13px;background:#f6f7f9;border-radius:10px;margin:6px 0
   </section>
 
   <section id="t2" style="display:none">
-    <div class="hero"><h1>成交记录</h1><p>预测价和实际成交价放在一起，看报价准不准。</p></div>
+    <div class="hero"><h1>历史记录</h1><p>评估过的每台机，以及后来成交的情况。</p></div>
     <div class="statgrid" id="statGrid"></div>
+    <div class="section-title">我评估过的机器</div>
+    <div id="historyList"></div>
     <div class="section-title">预测价 vs 实际成交价</div>
     <div id="predActual"></div>
     <div class="section-title">最近成交</div>
@@ -239,7 +241,7 @@ var records=[
 {model:"iPhone 15 128G",verdict:"buy",pred:3200,actual:3150,buy:2600,days:4,hit:true,note:"准新，秒出"},
 {model:"iPhone 12 mini",verdict:"skip",pred:900,actual:0,buy:0,days:0,hit:true,note:"续航差，没收"}
 ];
-var known={},context="",lastCard=null;
+var known={},context="",lastCard=null,history=[];records.forEach(function(r){history.unshift({model:r.model,verdict:r.verdict,status:"已卖出",sell:r.actual,buy:r.buy,days:r.days});});
 var CRITICAL=["model","storage","battery_health","region","carrier_lock","condition_grade","listed_price"];
 var Q={model:"什么机型？比如 iPhone 13 Pro",storage:"存储多大？128G / 256G？",battery_health:"电池健康多少？",region:"国行还是美版 / 港版？",carrier_lock:"有锁吗？无锁 / 有锁 / 黑解？",condition_grade:"成色几成新？",listed_price:"卖家标价多少？"};
 var V_TEXT={buy:"建议收",watch:"可观望",skip:"不建议收"};
@@ -261,7 +263,7 @@ async function parseSmart(t){var s=getSettings();if(s.mode!=="rule"){try{var r=a
 var PHONE_HINT=["iphone","苹果","手机","电池","国行","美版","港版","日版","无锁","有锁","黑解","标价","成色","pro","mini","plus","屏幕","拆修","面容","id锁","机型","存储","128","256","512"];
 function isPhoneRelated(t){t=(t||"").toLowerCase();for(var i=0;i<PHONE_HINT.length;i++){if(t.indexOf(PHONE_HINT[i])>=0)return true;}return false;}
 async function sendMsg(t){addUser(t);context+=" "+t;var pr=await parseSmart(t);mergeKnown(pr.parsed);var force=/(评估|出结果|出卡|就这样|就这些|可以了|好了)/.test(t);var miss=CRITICAL.filter(function(k){return known[k]==null||known[k]==="";});$("statusLine").textContent=knownLine()+(pr.source==="llm"?" · AI 解析":" · 规则解析");
-if(force||miss.length===0){var card=evaluate(known,context);lastCard=card;addCard(card);known={};context="";$("statusLine").textContent="";return;}
+if(force||miss.length===0){var card=evaluate(known,context);lastCard=card;addCard(card);history.unshift({model:card.item.model,storage:card.item.storage,listed:card.item.listed_price,verdict:card.verdict,status:"已评估"});known={};context="";$("statusLine").textContent="";return;}
 if(pr.reply){addBot(pr.reply);return;}
 if(miss.length===CRITICAL.length&&!isPhoneRelated(t)){if(/你好|在吗|hi|hello|哈喽|谢谢|感谢/.test(t)){addBot("你好。发我一条闲鱼描述（型号、价格、电池这些），或者点上面的示例。");}else{addBot("我只做二手 iPhone 的收货判断。把闲鱼描述发我，或点上面的示例试试。");}return;}
 var got=knownLine();var ack=got?("好，"+got+"。还差几点："):"好，先记下。还差几点：";var qs=miss.slice(0,3).map(function(k){return Q[k];});addBot(ack,qs);}
@@ -323,7 +325,8 @@ h+='<div class="recform" id="recForm" style="display:none"><div class="row"><lab
 h+='</div>';return h;}
 function addCard(c){var d=document.createElement("div");d.className="msg bot";d.style.maxWidth="100%";var w=document.createElement("div");w.innerHTML=cardHTML(c);d.appendChild(w);$("chat").appendChild(d);scrollChat();}
 function toggleRec(){var f=$("recForm");if(f)f.style.display=(f.style.display==="none")?"":"none";}
-function saveRec(){if(!lastCard){return;}var sell=parseFloat($("rfSell").value);var buy=parseFloat($("rfBuy").value);var days=parseInt($("rfDays").value,10)||0;var note=$("rfNote").value.trim();if(!sell){alert("先填实际卖出价");return;}var pred=lastCard.expected_sell?lastCard.expected_sell.price_low:null;var hit;if(lastCard.verdict==="buy"){hit=buy>0?sell>buy:true;}else{hit=true;}records.push({model:(lastCard.item.model||"未识别")+(lastCard.item.storage?" "+lastCard.item.storage+"G":""),verdict:lastCard.verdict,pred:pred,actual:sell,buy:buy||0,days:days,hit:hit,note:note||"用户记录"});toggleRec();renderStats();}
+function saveRec(){if(!lastCard){return;}var sell=parseFloat($("rfSell").value);var buy=parseFloat($("rfBuy").value);var days=parseInt($("rfDays").value,10)||0;var note=$("rfNote").value.trim();if(!sell){alert("先填实际卖出价");return;}var pred=lastCard.expected_sell?lastCard.expected_sell.price_low:null;var hit;if(lastCard.verdict==="buy"){hit=buy>0?sell>buy:true;}else{hit=true;}records.push({model:(lastCard.item.model||"未识别")+(lastCard.item.storage?" "+lastCard.item.storage+"G":""),verdict:lastCard.verdict,pred:pred,actual:sell,buy:buy||0,days:days,hit:hit,note:note||"用户记录"});toggleRec();if(history.length){history[0].status="已卖出";history[0].sell=sell;history[0].buy=buy||0;history[0].days=days;}renderStats();renderHistory();}
+function renderHistory(){var h="";history.forEach(function(x){var st=x.status||"已评估";h+='<div class="record"><div class="top"><b>'+esc(x.model||"未识别")+(x.storage?' '+x.storage+'G':'')+(x.listed?' · 标价 ¥'+fmt(x.listed):'')+'</b><span class="mini-badge '+V_CLS[x.verdict]+'">'+V_TEXT[x.verdict]+'</span></div><div class="nums">'+st+(x.sell?' · 卖出 ¥'+fmt(x.sell):'')+'</div></div>';});$("historyList").innerHTML=h||'<div class="muted">还没有评估记录</div>';}
 function renderStats(){var n=records.length;var errs=records.filter(function(r){return r.actual>0&&r.pred>0;}).map(function(r){return Math.abs(r.pred-r.actual)/r.actual;});var avgErr=errs.length?(errs.reduce(function(a,b){return a+b;},0)/errs.length*100).toFixed(1):"—";var hits=records.filter(function(r){return r.hit===true;}).length;var hitRate=Math.round(hits/n*100);var days=records.filter(function(r){return r.days>0;}).map(function(r){return r.days;});var avgDays=days.length?Math.round(days.reduce(function(a,b){return a+b;},0)/days.length):"—";$("statGrid").innerHTML='<div class="stat"><b>累计单数</b><span>'+n+'</span></div><div class="stat"><b>平均报价误差</b><span>±'+avgErr+'%</span></div><div class="stat"><b>决策一致率</b><span>'+hitRate+'%</span></div><div class="stat"><b>平均出手天数</b><span>'+avgDays+' 天</span></div>';
 var pa="";records.filter(function(r){return r.actual>0;}).forEach(function(r){var diff=r.pred>0?Math.round((r.actual-r.pred)/r.pred*100):0;pa+='<div class="record"><div class="top"><b>'+esc(r.model)+'</b><span class="mini-badge '+V_CLS[r.verdict]+'">'+V_TEXT[r.verdict]+'</span></div><div class="nums">预测 ¥'+fmt(r.pred)+' → 实际 ¥'+fmt(r.actual)+'（'+(diff>=0?"+":"")+diff+'%）</div></div>';});$("predActual").innerHTML=pa||'<div class="muted">还没有成交记录</div>';
 var rl="";records.slice().reverse().forEach(function(r){var line=(r.actual>0)?("收购 ¥"+fmt(r.buy)+" · 卖出 ¥"+fmt(r.actual)+" · 持有 "+r.days+" 天"):"未收（避坑）";rl+='<div class="record"><div class="top"><b>'+esc(r.model)+'</b><span class="mini-badge '+V_CLS[r.verdict]+'">'+V_TEXT[r.verdict]+'</span></div><div class="nums">'+line+' · '+esc(r.note)+'</div></div>';});$("recList").innerHTML=rl||'<div class="muted">暂无记录</div>';}
