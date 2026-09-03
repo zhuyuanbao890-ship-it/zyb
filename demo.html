@@ -88,6 +88,17 @@ ul.clean li{padding:10px 13px;background:#f6f7f9;border-radius:10px;margin:6px 0
 .sheet .field{margin:12px 0}
 .sheet .field label{display:block;font-size:12px;color:#6b7280;margin-bottom:4px}
 .sheet .field input{width:100%;border:1px solid #e3e6ea;border-radius:10px;padding:10px;font-size:14px}
+
+.glance{padding:2px 0 0}
+.glance-item{font-size:13px;color:#6b7280;margin-top:10px}
+.glance-reason{font-size:14px;color:#374151;margin-top:6px;line-height:1.6}
+.glance-price{text-align:center;margin:14px 0 6px;padding:12px 0;border-top:1px solid #f0f1f3;border-bottom:1px solid #f0f1f3}
+.glance-price .label{font-size:12px;color:#8a8f98;display:block}
+.glance-price .num{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.5px;color:#111}
+.glance-price .num small{font-size:14px;font-weight:500;color:#8a8f98}
+.btn-expand{width:100%;margin-top:8px;background:#f6f7f9;border:1px solid #e8eaee;border-radius:10px;padding:9px;font-size:13px;color:#2563eb;cursor:pointer}
+.btn-expand .caret{font-size:11px}
+.detail{border-top:1px solid #f0f1f3;margin-top:14px;padding-top:4px}
 </style>
 </head>
 <body>
@@ -267,7 +278,34 @@ else{label="收机时机";exp=s>=1?"适合收":s>=0.7?"正常窗口":"临近新�
 return{label:label,exp:exp};}
 function median(a){if(!a||!a.length)return null;a=a.slice().sort(function(x,y){return x-y;});var m=Math.floor(a.length/2);return a.length%2?a[m]:Math.round((a[m-1]+a[m])/2);}
 function compStats(model,storage){var list=[];DATA.samples.forEach(function(s){var p=parseText(s.text);if(p.model===model&&(!storage||p.storage===storage))list.push(p);});var prices=list.map(function(p){return p.listed_price;}).filter(function(x){return x>0;});return{n:list.length,med:median(prices),min:prices.length?Math.min.apply(null,prices):null};}
-function cardHTML(c){var it=c.item||{};var h="";h+='<div class="card">';
+function glanceReason(c){var r=(c.reasons&&c.reasons[0])||"";return r;}
+function toggleDetail(btn){var card=btn.closest('.card');var det=card?card.querySelector('.detail'):null;if(!det)return;var open=det.style.display==="none";det.style.display=open?"":"none";btn.innerHTML=open?"收起详细分析 ▴":"展开详细分析 ▾";}
+function actionAdvice(c){var it=c.item||{};var h="";var listed=it.listed_price,mb=c.max_buy_price;if(listed&&mb){h+='<div class="section-title">砍价建议</div><ul class="clean">';h+=(listed>mb)?('<li>标价 ¥'+fmt(listed)+' 高于建议上限 ¥'+fmt(mb)+'，可以从 ¥'+fmt(mb)+' 附近开始谈。</li>'):('<li>标价 ¥'+fmt(listed)+' 已在建议收购区间内，可以直接谈。</li>');h+='</ul>';}var risks=c.risks||[];var ch=[];function hasR(t){return risks.some(function(r){return r.type.indexOf(t)>=0;});}if(hasR("ID锁")||hasR("监管"))ch.push("查有没有 ID 锁/监管锁，当面抹除验证");if(hasR("换屏"))ch.push("验屏幕是否原装（查原彩 + 爱思验机）");if(hasR("拆修")||hasR("换电池"))ch.push("看拆修痕迹、确认电池是否原装");if(hasR("扩容"))ch.push("核对实际容量，识别扩容机");ch.push("查电池健康实值");ch.push("测面容/指纹、屏幕断触、扬声器/摄像头");if(ch.length){h+='<div class="section-title">面交验机清单</div><ul class="clean">';ch.forEach(function(x){h+='<li>'+esc(x)+'</li>';});h+='</ul>';}return h;}
+function cardHTML(c){var it=c.item||{};var price=(c.suggested_buy_range&&c.suggested_buy_range.length)?(fmt(c.suggested_buy_range[0])+" ~ "+fmt(c.suggested_buy_range[1])):"—";var h="";h+='<div class="card">';
+h+='<div class="glance">';
+h+='<span class="verdict '+V_CLS[c.verdict]+'">'+V_TEXT[c.verdict]+'</span>';
+h+='<div class="glance-item">'+esc(it.model||"未识别机型")+(it.storage?" · "+it.storage+"G":"")+(it.listed_price?" · 标价 "+fmt(it.listed_price)+" 元":"")+'</div>';
+var gr=glanceReason(c);if(gr){h+='<div class="glance-reason">'+esc(gr)+'</div>';}
+h+='<div class="glance-price"><span class="label">建议收购价</span><span class="num">'+price+' <small>元</small></span></div>';
+h+='<button class="btn-expand" onclick="toggleDetail(this)">展开详细分析 <span class="caret">▾</span></button>';
+h+='</div>';
+h+='<div class="detail" style="display:none">';
+var cs=compStats(it.model,it.storage);if(cs&&cs.n>0){h+='<div class="comp-line"><b>同款行情</b> · 在售 '+cs.n+' 台 · 中位标价 ¥'+fmt(cs.med)+' · 最低 ¥'+fmt(cs.min)+'</div>';}
+h+='<div class="metrics">';
+if(c.expected_sell){h+='<div class="metric"><b>预期出手价</b><span>'+fmt(c.expected_sell.price_low)+" ~ "+fmt(c.expected_sell.price_high)+'</span></div>';h+='<div class="metric"><b>预计出手天数</b><span>'+c.expected_sell.days+' 天</span></div>';}
+if(c.margin_estimate){h+='<div class="metric"><b>预估利润</b><span>'+fmt(c.margin_estimate.profit)+' 元</span></div>';h+='<div class="metric"><b>利润率</b><span>'+Math.round(c.margin_estimate.ratio*100)+'%</span></div>';}
+h+='</div>';
+if(c.missing_info&&c.missing_info.length){h+='<div class="section-title">还差这些信息（补充后更准）</div><ul class="clean">';c.missing_info.forEach(function(m){h+='<li>'+esc(m)+'</li>';});h+='</ul>';}
+h+='<div class="dims">';c.dimension_scores.forEach(function(d){var u=dimUI(d);h+='<div class="dim"><div class="head"><span>'+u.label+'</span><i>'+Math.round(d.score*100)+'</i></div><div class="bar"><b style="width:'+Math.round(d.score*100)+'%"></b></div><div class="exp">'+u.exp+'</div></div>';});h+='</div>';
+h+='<div class="section-title">有什么坑</div>';
+if(c.risks&&c.risks.length){h+='<ul class="clean">';c.risks.forEach(function(r){h+='<li class="'+(r.level==="high"?"risk-high":r.level==="medium"?"risk-medium":"")+'">'+esc(r.type)+'</li>';});h+='</ul>';}else{h+='<ul class="clean"><li>描述里没看到明显风险词，建议面交时再验一遍</li></ul>';}
+h+='<div class="section-title">要问卖家什么</div><ul class="clean">';c.seller_notes.forEach(function(m){h+='<li>'+esc(m)+'</li>';});h+='</ul>';
+h+=actionAdvice(c);
+var cases=retrieveCases(c.item,c.risks);if(cases&&cases.length){h+='<div class="section-title">历史案例参考</div>';cases.forEach(function(x){h+='<div class="record"><div class="top"><b>'+esc(x.model)+(x.storage?' '+x.storage+'G':'')+'</b><span class="mini-badge '+(x.hit?'buy':'watch')+'">'+(x.hit?'赚了':'没赚')+'</span></div><div class="nums">收购 ¥'+fmt(x.buy)+' → 卖出 ¥'+fmt(x.sell)+' · 持有 '+x.days+' 天</div><div class="nums" style="color:#6b7280">'+esc(x.lesson||x.note)+'</div></div>';});}
+h+='<div style="margin-top:14px"><a class="link" onclick="toggleRec()">这单后来卖了多少？记一笔</a></div>';
+h+='<div class="recform" id="recForm" style="display:none"><div class="row"><label>实际卖出价（元）</label><input type="number" id="rfSell"></div><div class="row"><label>实际收购价（元）</label><input type="number" id="rfBuy"></div><div class="row"><label>持有天数</label><input type="number" id="rfDays"></div><div class="row"><label>备注</label><input type="text" id="rfNote" placeholder="比如：被买家认出换屏，压了价"></div><button style="width:100%;background:#2563eb;color:#fff;border:0;border-radius:12px;padding:12px;font-size:15px;font-weight:600" onclick="saveRec()">保存</button></div>';
+h+='</div>';
+h+='</div>';return h;}
 h+='<span class="verdict '+V_CLS[c.verdict]+'">'+V_TEXT[c.verdict]+'</span>';
 h+='<div class="item-line">'+esc(it.model||"未识别机型")+(it.storage?" · "+it.storage+"G":"")+(it.listed_price?" · 标价 "+fmt(it.listed_price)+" 元":"")+'</div>';
 var cs=compStats(it.model,it.storage);if(cs&&cs.n>0){h+='<div class="comp-line"><b>同款行情</b> · 在售 '+cs.n+' 台 · 中位标价 ¥'+fmt(cs.med)+' · 最低 ¥'+fmt(cs.min)+'</div>';}
