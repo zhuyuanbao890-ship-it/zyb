@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>收机参谋</title>
+<style>
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI","Microsoft YaHei",sans-serif;background:#f6f7f9;color:#1a1a1a;font-size:15px;line-height:1.6}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px 48px}
+.top{text-align:center;padding:22px 16px 4px}
+.top .name{font-size:17px;font-weight:700;color:#111}
+.top .tag{font-size:12px;color:#8a8f98;margin-top:2px}
+nav{display:flex;gap:8px;max-width:560px;margin:14px auto 0;padding:0 16px}
+nav button{flex:1;border:0;background:transparent;padding:10px;font-size:15px;color:#8a8f98;border-bottom:2px solid transparent;cursor:pointer}
+nav button.active{color:#2563eb;border-color:#2563eb;font-weight:600}
+.hero{margin:22px 0 16px}
+.hero h1{font-size:22px;font-weight:700;margin:0 0 6px;line-height:1.4;color:#111}
+.hero p{font-size:14px;color:#6b7280;margin:0;line-height:1.7}
+textarea{width:100%;min-height:132px;border:1px solid #e3e6ea;border-radius:12px;padding:13px 14px;font-size:15px;line-height:1.6;resize:vertical;font-family:inherit;background:#fff;color:#1a1a1a}
+textarea:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.10)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 14px}
+.chip{border:1px solid #e3e6ea;background:#fff;border-radius:999px;padding:7px 13px;font-size:13px;color:#4b5563;cursor:pointer}
+.chip:hover{border-color:#2563eb;color:#2563eb}
+.btn-primary{width:100%;background:#2563eb;color:#fff;border:0;border-radius:12px;padding:15px;font-size:16px;font-weight:600;cursor:pointer}
+.btn-primary:active{background:#1d4ed8}
+.demo-note{text-align:center;font-size:12px;color:#b3b7bd;margin-top:12px}
+.card{background:#fff;border:1px solid #e8eaee;border-radius:16px;padding:20px 18px;margin-top:18px}
+.verdict{display:inline-block;font-size:16px;font-weight:700;padding:7px 18px;border-radius:999px;color:#fff}
+.buy{background:#16a34a}.watch{background:#d97706}.skip{background:#dc2626}
+.item-line{font-size:13px;color:#6b7280;margin-top:12px}
+.price-hero{margin:14px 0 4px;padding:16px 0;border-top:1px solid #f0f1f3;border-bottom:1px solid #f0f1f3;text-align:center}
+.price-hero .label{font-size:12px;color:#8a8f98}
+.price-hero .num{font-size:34px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.5px;color:#111}
+.price-hero .num small{font-size:14px;font-weight:500;color:#8a8f98}
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.metric{background:#f6f7f9;border-radius:12px;padding:12px 14px}
+.metric b{display:block;font-size:12px;color:#8a8f98;font-weight:400;margin-bottom:2px}
+.metric span{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;color:#1a1a1a}
+.dims{margin:10px 0}
+.dim{margin:13px 0}
+.dim .head{display:flex;justify-content:space-between;font-size:14px;font-weight:600;color:#1a1a1a}
+.dim .head i{font-style:normal;color:#2563eb;font-weight:600;font-variant-numeric:tabular-nums}
+.dim .bar{height:6px;background:#eef0f3;border-radius:999px;overflow:hidden;margin:7px 0 5px}
+.dim .bar b{display:block;height:100%;background:#2563eb;border-radius:999px}
+.dim .exp{font-size:12px;color:#8a8f98}
+.section-title{font-size:14px;font-weight:600;margin:20px 0 8px;color:#1a1a1a}
+ul.clean{list-style:none;padding:0;margin:0}
+ul.clean li{padding:11px 13px;background:#f6f7f9;border-radius:10px;margin:6px 0;font-size:13px;line-height:1.6;color:#374151}
+.risk-high{color:#dc2626;font-weight:600}.risk-medium{color:#d97706;font-weight:600}
+.muted{color:#8a8f98;font-size:12px}
+.link{color:#2563eb;cursor:pointer;font-size:13px}
+.recform{background:#f6f7f9;border-radius:12px;padding:14px;margin-top:12px}
+.recform .row{display:flex;flex-direction:column;gap:4px;margin:8px 0}
+.recform label{font-size:12px;color:#6b7280}
+.recform input{border:1px solid #e3e6ea;border-radius:10px;padding:10px;font-size:14px;background:#fff;color:#1a1a1a}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:#fff;border:1px solid #e8eaee;border-radius:14px;padding:16px 12px;text-align:center}
+.stat b{display:block;font-size:12px;color:#8a8f98;font-weight:400}
+.stat span{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;color:#1a1a1a}
+.record{border:1px solid #e8eaee;border-radius:12px;padding:12px 14px;margin:8px 0;background:#fff}
+.record .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.record .top b{font-size:13px;color:#1a1a1a;font-weight:600}
+.mini-badge{font-size:11px;font-weight:700;color:#fff;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.record .nums{font-size:12px;color:#6b7280;margin-top:6px;line-height:1.7;font-variant-numeric:tabular-nums}
+.advanced{margin-top:36px;color:#9ca3af;font-size:12px;text-align:center}
+.advanced summary{cursor:pointer;color:#9ca3af}
+.advanced .adv-body{margin-top:10px;text-align:left}
+.advanced .adv-body .muted{margin-top:8px}
+.advanced input{font-size:12px;margin:4px 0}
+</style>
+</head>
+<body>
+
+<div class="top"><div class="name">收机参谋</div><div class="tag">二手 iPhone 收货决策工具</div></div>
+<nav>
+  <button id="nav1" class="active" onclick="showTab('t1')">评估</button>
+  <button id="nav2" onclick="showTab('t2')">战绩</button>
+</nav>
+<div class="wrap">
+  <section id="t1">
+    <div class="hero"><h1>这台机，值不值得收？</h1><p>粘贴闲鱼标题和描述，给你一份收购建议：收不收、多少钱收、有什么坑、要问卖家什么。</p></div>
+    <textarea id="inputText" placeholder="粘贴闲鱼标题 + 描述，比如：iPhone 13 128G 国行无锁 95新 电池90 无拆修 标价 1250 可小刀"></textarea>
+    <div class="chips">
+      <button class="chip" onclick="pickExample(0)">国行好价</button>
+      <button class="chip" onclick="pickExample(1)">带 ID 锁</button>
+      <button class="chip" onclick="pickExample(2)">换过屏</button>
+      <button class="chip" onclick="pickExample(3)">标价偏高</button>
+    </div>
+    <button class="btn-primary" onclick="runEval()">出收购建议</button>
+    <div class="demo-note">演示数据，仅供展示</div>
+    <div id="cardArea"></div>
+  </section>
+
+  <section id="t2" style="display:none">
+    <div class="hero"><h1>成交记录</h1><p>预测价和实际成交价放在一起，看报价准不准。</p></div>
+    <div class="statgrid" id="statGrid"></div>
+    <div class="section-title">预测价 vs 实际成交价</div>
+    <div id="predActual"></div>
+    <div class="section-title">最近成交</div>
+    <div id="recList"></div>
+  </section>
+
+  <details class="advanced"><summary>高级：导入数据（JSON / CSV）</summary>
+    <div class="adv-body">
+      <div class="muted">候选样例 samples.json</div><input type="file" id="fSamples" accept=".json" onchange="importFile('samples')">
+      <div class="muted">行情锚点 anchors.csv</div><input type="file" id="fAnchors" accept=".csv" onchange="importFile('anchors')">
+      <div class="muted">知识库 knowledge.json</div><input type="file" id="fKnowledge" accept=".json" onchange="importFile('knowledge')">
+      <div class="muted">导入后替换内置演示数据</div>
+    </div>
+  </details>
+</div>
+
+<script>var DATA = {"samples":[{"id":"s001","title":"iPhone 13 128G 国行无锁 好成色","text":"iPhone 13 128G 国行无锁 95新 电池90 无拆修 原装屏 面容正常 深空黑 个人自用 标价 1250 可小刀 全套配件齐全"},{"id":"s002","title":"iPhone 13 Pro 128G 国行 远峰蓝","text":"iPhone 13 Pro 128G 国行无锁 95新 远峰蓝 电池88 无拆修 原装 标价 1680 诚心出可小刀"},{"id":"s003","title":"iPhone 14 128G 国行 星光色","text":"iPhone 14 128G 国行无锁 95新 星光色 电池90 无拆无修 原装屏 标价 1850 可议价 自用闲置"},{"id":"s004","title":"iPhone 14 Pro 128G 国行 深空黑","text":"iPhone 14 Pro 128G 国行无锁 95新 深空黑 电池88 无拆修 标价 2450 个人自用 接小刀"},{"id":"s005","title":"iPhone 15 128G 国行 原色","text":"iPhone 15 128G 国行无锁 95新 原色 电池90 无拆修 标价 2600 可小刀"},{"id":"s006","title":"iPhone 15 Pro 256G 国行 钛金属","text":"iPhone 15 Pro 256G 国行无锁 95新 钛金属 电池90 无拆修 标价 3650 诚心出"},{"id":"s007","title":"iPhone 13 128G 国行 价差一般","text":"iPhone 13 128G 国行无锁 95新 电池88 无拆修 标价 1450 可小刀"},{"id":"s008","title":"iPhone 14 256G 国行 缺电池信息","text":"iPhone 14 256G 国行 95新 无拆修 原装屏 标价 2300 个人闲置"},{"id":"s009","title":"iPhone 13 128G 有ID锁","text":"iPhone 13 128G 国行 9成 电池80 有ID锁 忘记密码 当配件出 标价 800"},{"id":"s010","title":"iPhone 14 Pro 256G 监管机","text":"iPhone 14 Pro 256G 美版 监管机 低价出 标价 3000"},{"id":"s011","title":"iPhone 14 128G 翻新机","text":"iPhone 14 128G 翻新机 外观充新 标价 1200"},{"id":"s012","title":"iPhone 12 128G 美版有锁","text":"iPhone 12 128G 美版有锁 卡贴 95新 电池85 标价 900"},{"id":"s013","title":"iPhone 13 256G 黑解机","text":"iPhone 13 256G 黑解机 电池86 95新 标价 1500"},{"id":"s014","title":"iPhone 13 Pro 128G 换过屏幕","text":"iPhone 13 Pro 128G 国行 95新 电池88 换过屏幕 国产屏 标价 2100"},{"id":"s015","title":"iPhone 14 128G 拆修过","text":"iPhone 14 128G 国行 拆修过 电池85 标价 1900"},{"id":"s016","title":"iPhone 12 Pro 256G 扩容机","text":"iPhone 12 Pro 256G 扩容机 国行 95新 标价 1200"},{"id":"s017","title":"iPhone 12 128G 进水维修","text":"iPhone 12 128G 国行 进水修过 8成 电池78 标价 600"},{"id":"s018","title":"iPhone 13 128G 自相矛盾","text":"iPhone 13 128G 国行 95新 原装无拆 换过电池 标价 1400"},{"id":"s019","title":"iPhone 13 128G 国行 标价过高","text":"iPhone 13 128G 国行 95新 电池88 无拆修 标价 1800"},{"id":"s020","title":"iPhone 14 Pro Max 256G 国行","text":"iPhone 14 Pro Max 256G 国行 95新 电池89 无拆修 标价 4200 可小刀"},{"id":"s021","title":"iPhone 15 Plus 256G 国行","text":"iPhone 15 Plus 256G 国行 95新 电池92 无拆修 标价 3400"},{"id":"s022","title":"iPhone 13 mini 128G 国行","text":"iPhone 13 mini 128G 国行 95新 电池90 无拆修 标价 1300"},{"id":"s023","title":"iPhone 12 Pro Max 256G 港版","text":"iPhone 12 Pro Max 256G 港版 9成 电池85 无拆修 标价 1700"},{"id":"s024","title":"iPhone 13 Pro Max 256G 国行","text":"iPhone 13 Pro Max 256G 国行 95新 电池87 无拆修 标价 2900"},{"id":"s025","title":"iPhone 14 Pro Max 512G 国行","text":"iPhone 14 Pro Max 512G 国行 95新 电池88 无拆修 标价 4600"},{"id":"s026","title":"iPhone 15 Pro Max 256G 国行","text":"iPhone 15 Pro Max 256G 国行 95新 电池91 无拆修 标价 5200"},{"id":"s027","title":"iPhone 15 Pro Max 1T 国行","text":"iPhone 15 Pro Max 1T 国行 95新 电池90 无拆修 标价 6800"},{"id":"s028","title":"iPhone 12 mini 128G 国行 战斗成色","text":"iPhone 12 mini 128G 国行 战斗成色 电池79 标价 700"},{"id":"s029","title":"iPhone 14 128G 国行 外屏碎","text":"iPhone 14 128G 国行 外屏碎 电池87 标价 1600"},{"id":"s030","title":"iPhone 13 128G 国行 无面容","text":"iPhone 13 128G 国行 95新 电池88 无面容 标价 1200"},{"id":"s031","title":"iPhone 13 256G 国行 鱼小铺","text":"iPhone 13 256G 国行 95新 电池89 无拆修 鱼小铺 标价 1650"},{"id":"s032","title":"iPhone 14 Pro 256G 国行 商家","text":"iPhone 14 Pro 256G 国行 95新 电池88 无拆修 商家自营 标价 3100"},{"id":"s033","title":"iPhone 12 64G 国行 95新","text":"iPhone 12 64G 国行 95新 电池86 无拆修 标价 950"},{"id":"s034","title":"iPhone 12 256G 国行 95新","text":"iPhone 12 256G 国行 95新 电池87 无拆修 标价 1450"},{"id":"s035","title":"iPhone 13 128G 美版无锁","text":"iPhone 13 128G 美版无锁 95新 电池88 无拆修 标价 1350"},{"id":"s036","title":"iPhone 14 Plus 128G 国行","text":"iPhone 14 Plus 128G 国行 95新 电池90 无拆修 标价 2350"},{"id":"s037","title":"iPhone 15 256G 国行 99新","text":"iPhone 15 256G 国行 99新 仅拆封 电池100 无拆修 标价 3500"},{"id":"s038","title":"iPhone 15 Pro 128G 国行 99新","text":"iPhone 15 Pro 128G 国行 99新 电池99 无拆修 标价 4200"},{"id":"s039","title":"iPhone 13 128G 无标价","text":"iPhone 13 128G 国行 95新 电池88 无拆修 个人自用 诚心出"},{"id":"s040","title":"iPhone 14 128G 国行 无拆修 带票","text":"iPhone 14 128G 国行无锁 95新 电池91 无拆修 原盒带发票 标价 1900"}],"anchors":[{"model":"iPhone 12","storage":128,"sell_low":1248,"sell_high":1352,"days":18,"source":"华强北参考(合成)"},{"model":"iPhone 12 mini","storage":128,"sell_low":1104,"sell_high":1196,"days":24,"source":"华强北参考(合成)"},{"model":"iPhone 12 Pro","storage":128,"sell_low":1440,"sell_high":1560,"days":21,"source":"华强北参考(合成)"},{"model":"iPhone 12 Pro Max","storage":128,"sell_low":1632,"sell_high":1768,"days":21,"source":"华强北参考(合成)"},{"model":"iPhone 13","storage":128,"sell_low":1632,"sell_high":1768,"days":12,"source":"华强北参考(合成)"},{"model":"iPhone 13 mini","storage":128,"sell_low":1392,"sell_high":1508,"days":16,"source":"华强北参考(合成)"},{"model":"iPhone 13 Pro","storage":128,"sell_low":2112,"sell_high":2288,"days":10,"source":"华强北参考(合成)"},{"model":"iPhone 13 Pro Max","storage":128,"sell_low":2496,"sell_high":2704,"days":10,"source":"华强北参考(合成)"},{"model":"iPhone 14","storage":128,"sell_low":2256,"sell_high":2444,"days":9,"source":"华强北参考(合成)"},{"model":"iPhone 14 Plus","storage":128,"sell_low":2544,"sell_high":2756,"days":11,"source":"华强北参考(合成)"},{"model":"iPhone 14 Pro","storage":128,"sell_low":3024,"sell_high":3276,"days":8,"source":"华强北参考(合成)"},{"model":"iPhone 14 Pro Max","storage":128,"sell_low":3456,"sell_high":3744,"days":8,"source":"华强北参考(合成)"},{"model":"iPhone 15","storage":128,"sell_low":3072,"sell_high":3328,"days":7,"source":"华强北参考(合成)"},{"model":"iPhone 15 Plus","storage":128,"sell_low":3408,"sell_high":3692,"days":8,"source":"华强北参考(合成)"},{"model":"iPhone 15 Pro","storage":128,"sell_low":3984,"sell_high":4316,"days":7,"source":"华强北参考(合成)"},{"model":"iPhone 15 Pro Max","storage":128,"sell_low":4800,"sell_high":5200,"days":7,"source":"华强北参考(合成)"},{"model":"iPhone 15 Pro Max","storage":256,"sell_low":5050,"sell_high":5550,"days":7,"source":"华强北参考(合成)"},{"model":"iPhone 14 Pro Max","storage":256,"sell_low":3600,"sell_high":3950,"days":8,"source":"华强北参考(合成)"},{"model":"iPhone 13","storage":256,"sell_low":1700,"sell_high":1870,"days":12,"source":"华强北参考(合成)"}],"knowledge":[{"category":"行情基线","title":"国行无锁最保值","tags":["国行","无锁","版本"],"content":"国行无锁是出手价基准；港版约 -5%，美版 -15%，日版 -18%，有锁/黑解需再大幅折价。水货影响保值与出手速度。"},{"category":"行情基线","title":"256GB 成价格分水岭","tags":["存储","容量"],"content":"256GB 比 128GB 溢价约 10%；128GB 普遍低 15%-20%；Pro 系列 > 普通版，大容量 > 小容量。"},{"category":"行情基线","title":"成色每差一档价差 10%-30%","tags":["成色"],"content":"成色 A/B/C/D 四档，每档价差 10%-30%；95新(几乎无痕) > 9成(细划痕) > 大花机(明显磕碰)。成色差一档，回收价差一截。"},{"category":"行情基线","title":"电池 80% 是硬门槛","tags":["电池","健康"],"content":"电池健康 80% 以上是回收重要门槛；低于 80% 无论成色如何都会被大幅压价；85% 以下开始明显折价。"},{"category":"验机通病","title":"换屏/国产屏识别","tags":["换屏","屏幕"],"content":"描述出现「换屏/国产屏/屏幕非原装」→ 屏幕按换屏折价；换屏影响面容/原彩，出手渠道建议走档口而非闲鱼个人。"},{"category":"验机通病","title":"ID锁/监管机是红线","tags":["ID锁/隐藏ID","监管机"],"content":"ID锁/隐藏ID/监管机/配置锁 → 默认不收或仅拆机件价；必须面交当场抹除验机，否则后续无法出手。"},{"category":"验机通病","title":"有锁/黑解/卡贴风险","tags":["有锁/黑解"],"content":"有锁/黑解/卡贴机大幅折价（约 -40% 起），且随时可能变砖；仅建议有渠道的档口低价收，不建议个人收。"},{"category":"验机通病","title":"拆修与进水","tags":["拆修"],"content":"拆修/维修史/进水/主板维修属于大修级别折价；换电池是轻维修（约 -10%），但需确认是否原装电芯。"},{"category":"验机通病","title":"扩容机风险","tags":["扩容"],"content":"扩容机（改容量）存在稳定性与升级风险，按风险折价并提示买家；多数档口不收。"},{"category":"验机通病","title":"翻新/组装机识别","tags":["翻新机"],"content":"翻新/组装/拼装/换壳机外观虽新但价值按配件价，直接红线不收。"},{"category":"机型参数","title":"iPhone 13 系列验机要点","tags":["iPhone 13","iPhone 13 Pro","iPhone 13 Pro Max"],"content":"13 系列重点看面容(ID Face ID)、电池健康、是否原装屏；13 是二手流通主力，周转快。"},{"category":"机型参数","title":"iPhone 14 系列验机要点","tags":["iPhone 14","iPhone 14 Pro","iPhone 14 Pro Max","iPhone 14 Plus"],"content":"14 Pro/Pro Max 主打灵动岛，重点验灵动岛显示、摄像头对焦；14 普通版与 13 外观相近，谨防以 13 冒充 14。"},{"category":"机型参数","title":"iPhone 15 系列验机要点","tags":["iPhone 15","iPhone 15 Pro","iPhone 15 Pro Max","iPhone 15 Plus"],"content":"15 全系 Type-C + 灵动岛，重点验 Type-C 尾插、原装屏幕；15 Pro 钛金属边框，磕碰需仔细看。"},{"category":"机型参数","title":"iPhone 12 系列验机要点","tags":["iPhone 12","iPhone 12 Pro","iPhone 12 Pro Max","iPhone 12 mini"],"content":"12 系列首代 5G，重点验信号、电池(普遍老化)、屏幕；12 mini 续航差、流动性弱，收价要低。"},{"category":"问卖家话术","title":"版本与发票","tags":["国行","无锁","发票"],"content":"标准问题：是不是国行无锁？有没有发票/盒子？能否提供序列号查保修？"},{"category":"问卖家话术","title":"拆修与电池","tags":["拆修","电池"],"content":"标准问题：有没有拆修过？换过屏/电池吗？电池健康现在具体多少？"},{"category":"问卖家话术","title":"ID锁与面交","tags":["ID锁/隐藏ID","监管机"],"content":"标准问题：有没有 ID 锁/监管锁？能否当面抹除并验机？支持走平台验货吗？"},{"category":"复盘样本","title":"看走眼：换屏未识别","tags":["换屏","复盘"],"content":"复盘样本：某单描述「原装」但实为国产屏，出手被买家识破降价 300。教训：高价值机型必须面交查原彩+爱思验机。"},{"category":"复盘样本","title":"漏价：个人急出低挂","tags":["复盘","行情窗口"],"content":"复盘样本：新上架个人急出低挂 30 分钟内被抢。教训：对新上架+个人卖家+明显低价要快速评估、快速跟进。"}]};</script>
+<script>
+
+// ===== 配置 =====
+var CFG={targetMargin:0.15,shipping:20,spread:0.03,buyFloor:0.92};
+// ===== 机型字典 =====
+var MODELS={"iPhone 12":{base:1300,days:18},"iPhone 12 mini":{base:1150,days:24},"iPhone 12 Pro":{base:1500,days:21},"iPhone 12 Pro Max":{base:1700,days:21},"iPhone 13":{base:1700,days:12},"iPhone 13 mini":{base:1450,days:16},"iPhone 13 Pro":{base:2200,days:10},"iPhone 13 Pro Max":{base:2600,days:10},"iPhone 14":{base:2350,days:9},"iPhone 14 Plus":{base:2650,days:11},"iPhone 14 Pro":{base:3150,days:8},"iPhone 14 Pro Max":{base:3600,days:8},"iPhone 15":{base:3200,days:7},"iPhone 15 Plus":{base:3550,days:8},"iPhone 15 Pro":{base:4150,days:7},"iPhone 15 Pro Max":{base:5000,days:7}};
+var STORAGE_MULT={64:0.90,128:1.00,256:1.10,512:1.22,1024:1.35};
+var REGION_MULT={"国行":1.00,"港版":0.95,"美版":0.85,"日版":0.82,"其他":0.80,"未知":0.96};
+var CARRIER_MULT={"无锁":1.00,"有锁":0.60,"黑解":0.55,"未知":0.96};
+var CONDITION_MULT={"99新":1.02,"95新":1.00,"9成":0.92,"8成":0.82,"战斗成色":0.68,"未知":0.95};
+var SCREEN_MULT={"原装":1.00,"换屏":0.85,"外屏碎":0.70,"划痕":0.95,"未知":1.00};
+var REPAIR_MULT={"无拆修":1.00,"换电池":0.90,"拆修":0.88,"大修":0.65,"未知":0.95};
+var REGION_ALIASES={"国行":["国行","中国大陆","大陆行货","国行无锁","全网通","行货"],"港版":["港版","港行","香港","港货"],"美版":["美版","美规","美国","美版无锁","美行"],"日版":["日版","日规","日本","日行"],"其他":["欧版","韩版","亚太","海外","水货","国际版"]};
+var CARRIER_ALIASES={"无锁":["无锁","已解锁","官解","公开版"],"有锁":["有锁","卡贴","卡贴机","美版有锁","日版有锁"],"黑解":["黑解","黑解机"]};
+var CONDITION_ALIASES={"99新":["99新","99成新","仅拆封","全新仅拆","充新","99成"],"95新":["95新","95成新","九五新","9.5成新","95成"],"9成":["9成","九成新","9成新","九成","9新"],"8成":["8成","八成新","8成新","八成","8新"],"战斗成色":["战斗成色","伊拉克成色","垃圾成色","战损","伊拉克"]};
+var SCREEN_ALIASES={"原装":["原装屏","原屏","无换屏","屏幕原装","原装"],"换屏":["换屏","换过屏幕","换过屏","国产屏","屏幕非原装","换外屏","换过外屏"],"外屏碎":["外屏碎","外屏裂","屏幕碎","碎屏","爆屏"],"划痕":["划痕","屏幕划痕","细微划痕","明显划痕"]};
+var REPAIR_ALIASES={"无拆修":["无拆修","未拆修","无拆无修","全原","无修","原装无拆"],"换电池":["换电池","换过电池","更换电池","换电芯","电池更换"],"拆修":["拆修","拆过","维修过","修过","拆机","小修"],"大修":["大修","主板维修","进水维修","搬板","进水","修主板"]};
+var RISK_RULES=[
+{type:"ID锁/隐藏ID",level:"high",kw:["id锁","隐藏id","有id","忘记id","id退不掉","账号锁","已锁定"]},
+{type:"监管机",level:"high",kw:["监管机","配置锁","远程锁","企业机","mdm","受监管","租赁机"]},
+{type:"翻新机",level:"high",kw:["翻新","翻新机","组装机","拼装机","换壳机","改版机"]},
+{type:"有锁/黑解",level:"high",kw:["有锁","卡贴","黑解","美版有锁","日版有锁"]},
+{type:"扩容",level:"medium",kw:["扩容","扩过容","改容量","改内存"]},
+{type:"拆修",level:"medium",kw:["拆修","拆过","维修过","修过","大修","主板维修","搬板","拆机"]},
+{type:"换屏",level:"medium",kw:["换屏","换过屏幕","换过屏","国产屏","屏幕非原装","换外屏"]},
+{type:"换电池",level:"low",kw:["换电池","换过电池","更换电池","换电芯"]},
+{type:"功能缺失",level:"medium",kw:["无面容","面容坏","face id坏","faceid坏","无指纹","指纹坏","无震动","扬声器坏","摄像头坏","无蓝牙","wifi坏","无wifi"]}];
+var SKIP={"ID锁/隐藏ID":1,"监管机":1,"翻新机":1};
+var NEG="无未没非不";
+function batteryMult(p){if(p==null)return 0.95;if(p>=90)return 1.02;if(p>=85)return 0.98;if(p>=80)return 0.90;return 0.78;}
+function firstMatch(text,map,def){if(!text)return def||null;var t=text.toLowerCase();for(var k in map){var arr=map[k];for(var i=0;i<arr.length;i++){if(t.indexOf(arr[i].toLowerCase())>=0)return k;}}return def||null;}
+function normModel(text){if(!text)return null;var m=text.match(/iphone\s*(1[2-5])\s*(pro\s*max|pro|plus|mini)?/i);if(!m)return null;var family=+m[1];var suf=(m[2]||"").trim().toLowerCase();var map={"pro max":"Pro Max","pro":"Pro","plus":"Plus","mini":"mini"};var canon="iPhone "+family;if(suf)canon+=" "+(map[suf]||suf);return MODELS[canon]?canon:null;}
+function normStorage(text){if(!text)return null;var m=text.match(/(\d{2,4})\s*(?:GB|G)\b/i);if(m&&STORAGE_MULT[+m[1]])return +m[1];m=text.match(/\b1\s*(?:TB|T)\b/i);if(m)return 1024;return null;}
+function extractPrice(text){if(!text)return null;var m=text.match(/[¥￥]\s*(\d{3,5})/);if(m)return +m[1];m=text.match(/(?:标价|价格|售价|卖价|出价|卖|出)\s*[:：]?\s*(\d{3,5})/);if(m)return +m[1];return null;}
+function extractBattery(text){if(!text)return null;var m=text.match(/(?:电池|健康|效率|寿命)\s*(?:健康|效率|寿命)?\s*[:：]?\s*(\d{1,3})\s*%?/);if(m){var v=+m[1];if(v>=0&&v<=100)return v;}m=text.match(/(\d{1,3})\s*%?\s*(?:电池|健康)/);if(m){var v2=+m[1];if(v2>=0&&v2<=100)return v2;}return null;}
+function sellerType(text){if(!text)return null;if(/鱼小铺|小铺/.test(text))return "鱼小铺";if(/贩子|回收|档口|工作室|批发/.test(text))return "贩子";if(/商家|店铺|商家自营/.test(text))return "商家";if(/个人|自用|闲置|自己用/.test(text))return "个人";return null;}
+function matchTerms(t,terms){var hits=[];for(var i=0;i<terms.length;i++){var kw=terms[i];var idx=t.indexOf(kw);while(idx>=0){var prev=idx>0?t[idx-1]:"";if(idx===0||NEG.indexOf(prev)<0)hits.push(kw);idx=t.indexOf(kw,idx+1);}}return hits;}
+function scanRisks(text){if(!text)return[];var t=text.toLowerCase();var out=[];for(var i=0;i<RISK_RULES.length;i++){var r=RISK_RULES[i];var hits=matchTerms(t,r.kw);if(hits.length)out.push({type:r.type,level:r.level,keywords:hits});}return out;}
+function hasSkip(risks){for(var i=0;i<risks.length;i++)if(SKIP[risks[i].type])return true;return false;}
+function contradiction(text){if(!text)return null;var t=text.toLowerCase();var orig=matchTerms(t,["无拆","未拆","全原","原装","无修","无拆修"]);var rep=matchTerms(t,["换过","拆修","维修","换电池","换屏","修过","换过电池","换过屏幕"]);if(orig.length&&rep.length)return "描述既称原装/无拆修，又出现维修或更换痕迹，需向卖家核实";return null;}
+function parseText(text){text=text||"";return{model:normModel(text),storage:normStorage(text),region:firstMatch(text,REGION_ALIASES),carrier_lock:firstMatch(text,CARRIER_ALIASES),condition_grade:firstMatch(text,CONDITION_ALIASES),battery_health:extractBattery(text),screen_state:firstMatch(text,SCREEN_ALIASES),repair_history:firstMatch(text,REPAIR_ALIASES),seller_type:sellerType(text),listed_price:extractPrice(text)};}
+function anchorFor(model,storage){var exact=null;for(var i=0;i<DATA.anchors.length;i++){var x=DATA.anchors[i];if(x.model===model&&x.storage===storage)exact=x;}if(exact)return exact;for(var j=0;j<DATA.anchors.length;j++){var y=DATA.anchors[j];if(y.model===model){var mult=STORAGE_MULT[storage]||1;var m0=(y.sell_low+y.sell_high)/2*mult/(STORAGE_MULT[y.storage]||1);return{sell_low:Math.floor(m0*0.96),sell_high:Math.floor(m0*1.04),days:y.days,source:y.source};}}if(MODELS[model]){var b=MODELS[model];var m1=b.base*(STORAGE_MULT[storage]||1);return{sell_low:Math.floor(m1*0.96),sell_high:Math.floor(m1*1.04),days:b.days,source:"内置合成锚点"};}return null;}
+function estimateSell(p){var a=anchorFor(p.model,p.storage);if(!a)return null;var mid=(a.sell_low+a.sell_high)/2;var c=1;c*=REGION_MULT[p.region||"未知"];c*=CARRIER_MULT[p.carrier_lock||"未知"];c*=CONDITION_MULT[p.condition_grade||"未知"];c*=batteryMult(p.battery_health);c*=SCREEN_MULT[p.screen_state||"未知"];c*=REPAIR_MULT[p.repair_history||"未知"];var sm=mid*c;return{price_low:Math.floor(sm*(1-CFG.spread)),price_high:Math.floor(sm*(1+CFG.spread)),days:a.days,source:a.source,coeff:c};}
+function maxBuy(sellLow){return Math.floor(sellLow*(1-CFG.targetMargin)-CFG.shipping);}
+function marginAt(sellLow,buy){return sellLow?(sellLow-buy-CFG.shipping)/sellLow:0;}
+function scoreMargin(m){if(m>=0.15)return[1.0,"价差充足"];if(m>=0.08)return[0.7,"价差一般"];return[0.4,"价差偏薄"];}
+function scoreLiq(d){if(d==null)return[0.7,"周转未知"];if(d<=7)return[1.0,"周转快"];if(d<=21)return[0.7,"周转正常"];return[0.4,"周转慢"];}
+function scoreRisk(n,miss,high){if(high)return[0.2,"存在高危风险信号"];if(n>=2||miss>=3)return[0.5,"风险或缺失较多"];if(n===1||miss>=1)return[0.8,"存在个别风险/缺失"];return[1.0,"信息完整、无明显风险"];}
+function scoreSeller(s){if(s==="个人")return 1.0;if(s==="鱼小铺")return 0.8;if(s==="商家")return 0.6;if(s==="贩子")return 0.5;return 0.6;}
+function scoreWindow(){return[0.7,"发布窗口未知(默认)"];}
+function buildMissing(p,text){var m=[];if(!p.model)m.push("机型无法识别或范围外，请人工确认");if(p.battery_health==null)m.push("电池健康未知，建议向卖家确认");if(!p.region)m.push("版本(国行/港版/美版等)未知，建议确认");if(!p.carrier_lock)m.push("有无锁/黑解状态未知，建议确认");var t=(text||"").toLowerCase();if(t.indexOf("id锁")<0&&t.indexOf("监管")<0)m.push("是否有 ID 锁/监管锁未知");if(t.indexOf("无拆")<0&&t.indexOf("原装")<0&&t.indexOf("换过")<0&&t.indexOf("拆修")<0)m.push("是否拆修/换屏未知");return m;}
+function sellerNotes(p,m,risks){var out=[];if(!p.region||!p.carrier_lock)out.push("是否国行无锁、有无发票？");if(p.battery_health==null)out.push("电池健康现在具体多少？");var hasId=false;for(var i=0;i<m.length;i++)if(m[i].indexOf("ID")>=0||m[i].indexOf("监管")>=0)hasId=true;if(hasId)out.push("有无 ID 锁/监管锁，能否当面抹除验机？");out.push("支持面交验机吗？");return out;}
+function channel(p,risks){for(var i=0;i<risks.length;i++){var t=risks[i].type;if(t==="有锁/黑解"||t==="ID锁/隐藏ID"||t==="监管机"||t==="翻新机")return "档口/配件渠道";}if(p.condition_grade==="8成"||p.condition_grade==="战斗成色")return "回收平台/档口";return "闲鱼个人";}
+function retrieve(p,risks){var terms=[];["model","carrier_lock","region"].forEach(function(k){if(p[k])terms.push(p[k]);});risks.forEach(function(r){terms.push(r.type);});var scored=[];DATA.knowledge.forEach(function(d){var hay=(d.title+" "+d.content+" "+(d.tags||[]).join(" ")).toLowerCase();var s=0;terms.forEach(function(t){if(t&&hay.indexOf(t.toLowerCase())>=0)s++;});if(s>0)scored.push({s:s,d:d});});scored.sort(function(a,b){return b.s-a.s;});return scored.slice(0,5).map(function(x){return{category:x.d.category,title:x.d.title,content:x.d.content,score:x.s};});}
+function evaluate(p,text){var risks=scanRisks(text);var contra=contradiction(text);var missing=buildMissing(p,text);var sell=estimateSell(p);var reasons=[],maxB=null,range=[],margAsk=null,margEst=null,expSell=null;if(sell){expSell={channel:channel(p,risks),price_low:sell.price_low,price_high:sell.price_high,days:sell.days};maxB=maxBuy(sell.price_low);range=[Math.floor(maxB*CFG.buyFloor),maxB];margEst={profit:Math.round(sell.price_low-maxB-CFG.shipping),ratio:marginAt(sell.price_low,maxB)};margAsk=(p.listed_price&&p.listed_price>0)?marginAt(sell.price_low,p.listed_price):margEst.ratio;}
+var verdict;if(hasSkip(risks)){verdict="skip";var rt=[];risks.forEach(function(r){if(SKIP[r.type])rt.push(r.type);});reasons.push("命中红线风险："+rt.join("、"));}else if(contra){verdict="watch";reasons.push(contra);}else if(!sell){verdict="skip";reasons.push("机型无法识别或范围外，无法给出可靠报价");}else if(p.listed_price==null||p.listed_price<=0){verdict="watch";reasons.push("缺少标价，无法判断价差，请补充后再评估");}else if(p.listed_price>sell.price_low){verdict="skip";reasons.push("标价高于预期出手价下限，无价差空间");}else if(p.listed_price<=maxB){if(risks.length===0&&missing.length<=1){verdict="buy";reasons.push("标价低于可收购价上限，价差充足");}else{verdict="watch";reasons.push("价差充足但存在风险或信息缺失，建议先核实再收");}}else{verdict="watch";reasons.push("标价介于可收购价与出手价之间，价差被压缩，建议砍价");}
+var conf="medium";if(!p.model)conf="low";else if(missing.length===0&&risks.length===0)conf="high";else if(missing.length<=2&&risks.length<=1)conf="medium";else conf="low";
+var high=false;risks.forEach(function(r){if(r.level==="high")high=true;});
+var dims=[];var sM=scoreMargin(margAsk),sL=scoreLiq(sell?sell.days:null),sR=scoreRisk(risks.length,missing.length,high),sS=scoreSeller(p.seller_type),sW=scoreWindow();
+dims.push({dim:"价差空间",score:sM[0],weight:30,evidence:[sM[1]]});dims.push({dim:"流动性/周转",score:sL[0],weight:20,evidence:[sL[1]]});dims.push({dim:"品相确定性/风险",score:sR[0],weight:25,evidence:[sR[1]]});dims.push({dim:"卖家可信度",score:sS,weight:10,evidence:["卖家类型："+(p.seller_type||"未知")]});dims.push({dim:"行情窗口",score:sW[0],weight:15,evidence:[sW[1]]});
+var total=0;dims.forEach(function(d){total+=d.score*d.weight;});total=Math.round(total)/100;
+return{item:{model:p.model,storage:p.storage,region:p.region,carrier_lock:p.carrier_lock,condition_grade:p.condition_grade,battery_health:p.battery_health,listed_price:p.listed_price},verdict:verdict,confidence:conf,reasons:reasons,max_buy_price:maxB,suggested_buy_range:range,expected_sell:expSell,margin_estimate:margEst,margin_at_ask:margAsk,dimension_scores:dims,weighted_total:total,risks:risks,missing_info:missing,seller_notes:sellerNotes(p,missing,risks),rag_hits:retrieve(p,risks)};}
+
+</script>
+<script>
+
+var EXAMPLES=[
+"iPhone 13 128G 国行无锁 95新 电池90 无拆修 标价 1250 可小刀",
+"iPhone 13 128G 国行 有ID锁 忘记密码 标价 800",
+"iPhone 13 Pro 128G 国行 95新 电池88 换过屏幕 国产屏 标价 2100",
+"iPhone 13 128G 国行 95新 电池88 无拆修 标价 1800"
+];
+var records=[
+{model:"iPhone 13 128G",verdict:"buy",pred:1680,actual:1720,buy:1300,days:5,hit:true,note:"成色好，5 天出手"},
+{model:"iPhone 13 Pro 128G",verdict:"buy",pred:2150,actual:2080,buy:1680,days:9,hit:true,note:"砍了 200 收下"},
+{model:"iPhone 14 128G",verdict:"watch",pred:2300,actual:2250,buy:1900,days:12,hit:true,note:"观望后砍价成交"},
+{model:"iPhone 14 Pro 256G",verdict:"skip",pred:3200,actual:0,buy:0,days:0,hit:true,note:"标价虚高，没收"},
+{model:"iPhone 12 128G 有锁",verdict:"skip",pred:600,actual:0,buy:0,days:0,hit:true,note:"有锁机没碰"},
+{model:"iPhone 13 128G 换屏",verdict:"watch",pred:1500,actual:1350,buy:1200,days:15,hit:false,note:"换屏被买家压价 150"},
+{model:"iPhone 15 128G",verdict:"buy",pred:3200,actual:3150,buy:2600,days:4,hit:true,note:"准新，秒出"},
+{model:"iPhone 12 mini",verdict:"skip",pred:900,actual:0,buy:0,days:0,hit:true,note:"续航差，没收"}
+];
+var lastCard=null,lastText="";
+var V_TEXT={buy:"建议收",watch:"可观望",skip:"不建议收"};
+var V_CLS={buy:"buy",watch:"watch",skip:"skip"};
+function $(id){return document.getElementById(id);}
+function esc(s){if(s==null)return"";return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function fmt(n){if(n==null)return"—";return String(n).replace(/\B(?=(\d{3})+(?!\d))/g,",");}
+function showTab(id){$("t1").style.display=(id==="t1")?"":"none";$("t2").style.display=(id==="t2")?"":"none";$("nav1").className=(id==="t1")?"active":"";$("nav2").className=(id==="t2")?"active":"";if(id==="t2")renderStats();}
+function pickExample(i){$("inputText").value=EXAMPLES[i];}
+function runEval(){var t=$("inputText").value.trim();if(!t){alert("先粘贴一条描述，或点上面的示例");return;}lastText=t;var p=parseText(t);lastCard=evaluate(p,t);renderCard(lastCard);}
+function dimUI(dim){var s=dim.score;var label,exp;
+if(dim.dim==="价差空间"){label="利润空间";exp=s>=1?"利润够，能下手":s>=0.7?"利润一般，先砍价":"利润太薄，别收";}
+else if(dim.dim==="流动性/周转"){label="好不好出手";exp=s>=1?"好出手，几天能卖":s>=0.7?"正常，两三周内":"难卖，会压货";}
+else if(dim.dim==="品相确定性/风险"){label="机况风险";exp=s>=1?"信息全，没发现坑":s>=0.8?"有些没写全，先问清楚":s>=0.5?"风险或缺失较多，压价":"高危信号，别碰";}
+else if(dim.dim==="卖家可信度"){label="卖家靠不靠谱";exp=s>=1?"像个人自用":s>=0.8?"像小商家 / 鱼小铺":s>=0.6?"商家或未知":"像贩子，利润有限";}
+else{label="收机时机";exp=s>=1?"适合收":s>=0.7?"正常窗口":"临近新品发布，等等";}
+return{label:label,exp:exp};}
+function renderCard(c){var it=c.item||{};var h="";h+='<div class="card">';
+h+='<span class="verdict '+V_CLS[c.verdict]+'">'+V_TEXT[c.verdict]+'</span>';
+h+='<div class="item-line">'+esc(it.model||"未识别机型")+(it.storage?" · "+it.storage+"G":"")+(it.listed_price?" · 标价 "+fmt(it.listed_price)+" 元":"")+'</div>';
+h+='<div class="price-hero"><div class="label">建议收购价</div><div class="num">'+(c.suggested_buy_range&&c.suggested_buy_range.length?fmt(c.suggested_buy_range[0])+" ~ "+fmt(c.suggested_buy_range[1]):"—")+' <small>元</small></div></div>';
+h+='<div class="metrics">';
+if(c.expected_sell){h+='<div class="metric"><b>预期出手价</b><span>'+fmt(c.expected_sell.price_low)+" ~ "+fmt(c.expected_sell.price_high)+'</span></div>';h+='<div class="metric"><b>预计出手天数</b><span>'+c.expected_sell.days+' 天</span></div>';}
+if(c.margin_estimate){h+='<div class="metric"><b>预估利润</b><span>'+fmt(c.margin_estimate.profit)+' 元</span></div>';h+='<div class="metric"><b>利润率</b><span>'+Math.round(c.margin_estimate.ratio*100)+'%</span></div>';}
+h+='</div>';
+h+='<div class="dims">';c.dimension_scores.forEach(function(d){var u=dimUI(d);h+='<div class="dim"><div class="head"><span>'+u.label+'</span><i>'+Math.round(d.score*100)+'</i></div><div class="bar"><b style="width:'+Math.round(d.score*100)+'%"></b></div><div class="exp">'+u.exp+'</div></div>';});h+='</div>';
+h+='<div class="section-title">有什么坑</div>';
+if(c.risks&&c.risks.length){h+='<ul class="clean">';c.risks.forEach(function(r){h+='<li class="'+(r.level==="high"?"risk-high":r.level==="medium"?"risk-medium":"")+'">'+esc(r.type)+'</li>';});h+='</ul>';}else{h+='<ul class="clean"><li>描述里没看到明显风险词，建议面交时再验一遍</li></ul>';}
+h+='<div class="section-title">要问卖家什么</div><ul class="clean">';c.seller_notes.forEach(function(m){h+='<li>'+esc(m)+'</li>';});h+='</ul>';
+h+='<div style="margin-top:16px"><a class="link" onclick="toggleRec()">这单后来卖了多少？记一笔</a></div>';
+h+='<div class="recform" id="recForm" style="display:none"><div class="row"><label>实际卖出价（元）</label><input type="number" id="rfSell"></div><div class="row"><label>实际收购价（元）</label><input type="number" id="rfBuy"></div><div class="row"><label>持有天数</label><input type="number" id="rfDays"></div><div class="row"><label>备注</label><input type="text" id="rfNote" placeholder="比如：被买家认出换屏，压了价"></div><button class="btn-primary" onclick="saveRec()">保存</button></div>';
+h+='</div>';
+$("cardArea").innerHTML=h;$("cardArea").scrollIntoView({behavior:"smooth",block:"start"});}
+function toggleRec(){var f=$("recForm");f.style.display=(f.style.display==="none")?"":"none";}
+function saveRec(){if(!lastCard){return;}var sell=parseFloat($("rfSell").value);var buy=parseFloat($("rfBuy").value);var days=parseInt($("rfDays").value,10)||0;var note=$("rfNote").value.trim();if(!sell){alert("先填实际卖出价");return;}var pred=lastCard.expected_sell?lastCard.expected_sell.price_low:null;var hit;if(lastCard.verdict==="buy"){hit=buy>0?sell>buy:true;}else{hit=true;}records.push({model:(lastCard.item.model||"未识别")+(lastCard.item.storage?" "+lastCard.item.storage+"G":""),verdict:lastCard.verdict,pred:pred,actual:sell,buy:buy||0,days:days,hit:hit,note:note||"用户记录"});toggleRec();renderStats();$("cardArea").scrollIntoView({behavior:"smooth",block:"start"});}
+function renderStats(){var n=records.length;var errs=records.filter(function(r){return r.actual>0&&r.pred>0;}).map(function(r){return Math.abs(r.pred-r.actual)/r.actual;});var avgErr=errs.length?(errs.reduce(function(a,b){return a+b;},0)/errs.length*100).toFixed(1):"—";var hits=records.filter(function(r){return r.hit===true;}).length;var hitRate=Math.round(hits/n*100);var days=records.filter(function(r){return r.days>0;}).map(function(r){return r.days;});var avgDays=days.length?Math.round(days.reduce(function(a,b){return a+b;},0)/days.length):"—";$("statGrid").innerHTML='<div class="stat"><b>累计单数</b><span>'+n+'</span></div><div class="stat"><b>平均报价误差</b><span>±'+avgErr+'%</span></div><div class="stat"><b>决策一致率</b><span>'+hitRate+'%</span></div><div class="stat"><b>平均出手天数</b><span>'+avgDays+' 天</span></div>';
+var pa="";records.filter(function(r){return r.actual>0;}).forEach(function(r){var diff=r.pred>0?Math.round((r.actual-r.pred)/r.pred*100):0;pa+='<div class="record"><div class="top"><b>'+esc(r.model)+'</b><span class="mini-badge '+V_CLS[r.verdict]+'">'+V_TEXT[r.verdict]+'</span></div><div class="nums">预测 ¥'+fmt(r.pred)+' → 实际 ¥'+fmt(r.actual)+'（'+(diff>=0?"+":"")+diff+'%）</div></div>';});$("predActual").innerHTML=pa||'<div class="muted">还没有成交记录</div>';
+var rl="";records.slice().reverse().forEach(function(r){var line=(r.actual>0)?("收购 ¥"+fmt(r.buy)+" · 卖出 ¥"+fmt(r.actual)+" · 持有 "+r.days+" 天"):"未收（避坑）";rl+='<div class="record"><div class="top"><b>'+esc(r.model)+'</b><span class="mini-badge '+V_CLS[r.verdict]+'">'+V_TEXT[r.verdict]+'</span></div><div class="nums">'+line+' · '+esc(r.note)+'</div></div>';});$("recList").innerHTML=rl||'<div class="muted">暂无记录</div>';}
+function importFile(kind){var el={samples:$("fSamples"),anchors:$("fAnchors"),knowledge:$("fKnowledge")}[kind];var f=el.files[0];if(!f)return;var r=new FileReader();r.onload=function(){var txt=String(r.result);try{if(kind==="samples"){DATA.samples=JSON.parse(txt);}else if(kind==="anchors"){DATA.anchors=txt.split(/\r?\n/).slice(1).filter(Boolean).map(function(l){var c=l.split(",");return{model:c[0],storage:+c[1],sell_low:+c[2],sell_high:+c[3],days:+c[4],source:c[5]||"CSV"};});}else{DATA.knowledge=JSON.parse(txt);}alert("已导入 "+kind+" 数据");}catch(e){alert("文件格式不对："+e.message);}};r.readAsText(f,"utf-8");}
+renderStats();
+
+</script>
+</body>
+</html>
