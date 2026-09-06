@@ -118,6 +118,17 @@ ul.clean li{padding:10px 13px;background:#f6f7f9;border-radius:10px;margin:6px 0
 .gap.down{background:#fee9e9;color:#dc2626}
 .gap.na{background:#f3f4f6;color:#8a8f98}
 #boardDetail{margin-top:16px}
+
+.btn-ai{background:#2563eb;color:#fff;border:0;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;margin-left:2px}
+
+.board-card{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #e8eaee;border-radius:14px;padding:12px 14px;cursor:pointer}
+.board-card:active{background:#fafbfc}
+.ph-thumb{width:54px;height:54px;border-radius:12px;background:linear-gradient(135deg,#ffffff,#eef0f3);border:1px solid #eceef2;flex-shrink:0}
+.bd-main{flex:1;min-width:0}
+.bd-name{font-size:15px;font-weight:700;color:#1a1a1a}
+.bd-desc{font-size:12px;color:#8a8f98;margin-top:2px}
+.bd-prices{display:flex;gap:14px;margin-top:6px;font-size:12px;color:#6b7280;flex-wrap:wrap}
+.bd-prices b{font-size:14px;font-weight:700;color:#1a1a1a;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -135,7 +146,7 @@ ul.clean li{padding:10px 13px;background:#f6f7f9;border-radius:10px;margin:6px 0
     <section id="t0">
     <div class="hero"><h1>行情看板</h1><p>16 款 iPhone 的实时行情，开工前扫一眼；有目标的机型点进去看收货建议，或到「助手」直接问我。</p></div>
     <div class="boardbar">
-      <input id="boardSearch" placeholder="搜索机型，如 14 Pro" oninput="renderBoard()">
+      <input id="boardSearch" placeholder="筛选机型（可选，默认显示全部 16 款）" oninput="renderBoard()">
       <select id="boardStorage" onchange="renderBoard()"><option value="128">128G</option><option value="256">256G</option><option value="512">512G</option><option value="1024">1T</option></select>
       <select id="boardRegion" onchange="renderBoard()"><option value="">全部版本</option><option value="国行">国行</option><option value="港版">港版</option><option value="美版">美版</option><option value="日版">日版</option></select>
     </div>
@@ -273,7 +284,7 @@ var records=[
 {model:"iPhone 15 128G",verdict:"buy",pred:3200,actual:3150,buy:2600,days:4,hit:true,note:"准新，秒出"},
 {model:"iPhone 12 mini",verdict:"skip",pred:900,actual:0,buy:0,days:0,hit:true,note:"续航差，没收"}
 ];
-var known={},context="",lastCard=null,history=[];records.forEach(function(r){history.unshift({model:r.model,verdict:r.verdict,status:"已卖出",sell:r.actual,buy:r.buy,days:r.days});});
+var known={},context="",lastCard=null,histItems=[];records.forEach(function(r){histItems.unshift({model:r.model,verdict:r.verdict,status:"已卖出",sell:r.actual,buy:r.buy,days:r.days});});
 var CRITICAL=["model","storage","battery_health","region","carrier_lock","condition_grade","listed_price"];
 var Q={model:"什么机型？比如 iPhone 13 Pro",storage:"存储多大？128G / 256G？",battery_health:"电池健康多少？",region:"国行还是美版 / 港版？",carrier_lock:"有锁吗？无锁 / 有锁 / 黑解？",condition_grade:"成色几成新？",listed_price:"卖家标价多少？"};
 var V_TEXT={buy:"建议收",watch:"可观望",skip:"不建议收"};
@@ -295,7 +306,7 @@ async function parseSmart(t){var s=getSettings();if(s.mode!=="rule"){try{var r=a
 var PHONE_HINT=["iphone","苹果","手机","电池","国行","美版","港版","日版","无锁","有锁","黑解","标价","成色","pro","mini","plus","屏幕","拆修","面容","id锁","机型","存储","128","256","512"];
 function isPhoneRelated(t){t=(t||"").toLowerCase();for(var i=0;i<PHONE_HINT.length;i++){if(t.indexOf(PHONE_HINT[i])>=0)return true;}return false;}
 async function sendMsg(t){addUser(t);context+=" "+t;var pr=await parseSmart(t);mergeKnown(pr.parsed);var force=/(评估|出结果|出卡|就这样|就这些|可以了|好了)/.test(t);var miss=CRITICAL.filter(function(k){return known[k]==null||known[k]==="";});$("statusLine").textContent=knownLine()+(pr.source==="llm"?" · AI 解析":" · 规则解析");
-if(force||miss.length===0){var card=evaluate(known,context);lastCard=card;addCard(card);history.unshift({model:card.item.model,storage:card.item.storage,listed:card.item.listed_price,verdict:card.verdict,status:"已评估"});known={};context="";$("statusLine").textContent="";return;}
+if(force||miss.length===0){var card=evaluate(known,context);lastCard=card;addCard(card);histItems.unshift({model:card.item.model,storage:card.item.storage,listed:card.item.listed_price,verdict:card.verdict,status:"已评估"});known={};context="";$("statusLine").textContent="";return;}
 if(pr.reply){addBot(pr.reply);return;}
 if(miss.length===CRITICAL.length&&!isPhoneRelated(t)){if(/你好|在吗|hi|hello|哈喽|谢谢|感谢/.test(t)){addBot("你好。发我一条闲鱼描述（型号、价格、电池这些），或者点上面的示例。");}else{addBot("我只做二手 iPhone 的收货判断。把闲鱼描述发我，或点上面的示例试试。");}return;}
 var got=knownLine();var ack=got?("好，"+got+"。还差几点："):"好，先记下。还差几点：";var qs=miss.slice(0,3).map(function(k){return Q[k];});addBot(ack,qs);}
@@ -342,18 +353,18 @@ h+='</div>';
 h+='</div>';return h;}
 function addCard(c){var d=document.createElement("div");d.className="msg bot";d.style.maxWidth="100%";var w=document.createElement("div");w.innerHTML=cardHTML(c);d.appendChild(w);$("chat").appendChild(d);scrollChat();}
 function toggleRec(){var f=$("recForm");if(f)f.style.display=(f.style.display==="none")?"":"none";}
-function saveRec(){if(!lastCard){return;}var sell=parseFloat($("rfSell").value);var buy=parseFloat($("rfBuy").value);var days=parseInt($("rfDays").value,10)||0;var note=$("rfNote").value.trim();if(!sell){alert("先填实际卖出价");return;}var pred=lastCard.expected_sell?lastCard.expected_sell.price_low:null;var hit;if(lastCard.verdict==="buy"){hit=buy>0?sell>buy:true;}else{hit=true;}records.push({model:(lastCard.item.model||"未识别")+(lastCard.item.storage?" "+lastCard.item.storage+"G":""),verdict:lastCard.verdict,pred:pred,actual:sell,buy:buy||0,days:days,hit:hit,note:note||"用户记录"});toggleRec();if(history.length){history[0].status="已卖出";history[0].sell=sell;history[0].buy=buy||0;history[0].days=days;}renderStats();renderHistory();}
-function renderHistory(){var h="";history.forEach(function(x){var st=x.status||"已评估";h+='<div class="record"><div class="top"><b>'+esc(x.model||"未识别")+(x.storage?' '+x.storage+'G':'')+(x.listed?' · 标价 ¥'+fmt(x.listed):'')+'</b><span class="mini-badge '+V_CLS[x.verdict]+'">'+V_TEXT[x.verdict]+'</span></div><div class="nums">'+st+(x.sell?' · 卖出 ¥'+fmt(x.sell):'')+'</div></div>';});$("historyList").innerHTML=h||'<div class="muted">还没有评估记录</div>';}
+function saveRec(){if(!lastCard){return;}var sell=parseFloat($("rfSell").value);var buy=parseFloat($("rfBuy").value);var days=parseInt($("rfDays").value,10)||0;var note=$("rfNote").value.trim();if(!sell){alert("先填实际卖出价");return;}var pred=lastCard.expected_sell?lastCard.expected_sell.price_low:null;var hit;if(lastCard.verdict==="buy"){hit=buy>0?sell>buy:true;}else{hit=true;}records.push({model:(lastCard.item.model||"未识别")+(lastCard.item.storage?" "+lastCard.item.storage+"G":""),verdict:lastCard.verdict,pred:pred,actual:sell,buy:buy||0,days:days,hit:hit,note:note||"用户记录"});toggleRec();if(histItems.length){histItems[0].status="已卖出";histItems[0].sell=sell;histItems[0].buy=buy||0;histItems[0].days=days;}renderStats();renderHistory();}
+function renderHistory(){var h="";histItems.forEach(function(x){var st=x.status||"已评估";h+='<div class="record"><div class="top"><b>'+esc(x.model||"未识别")+(x.storage?' '+x.storage+'G':'')+(x.listed?' · 标价 ¥'+fmt(x.listed):'')+'</b><span class="mini-badge '+V_CLS[x.verdict]+'">'+V_TEXT[x.verdict]+'</span></div><div class="nums">'+st+(x.sell?' · 卖出 ¥'+fmt(x.sell):'')+'</div></div>';});$("historyList").innerHTML=h||'<div class="muted">还没有评估记录</div>';}
 var market={anchors:null,comps:null,updated:null};
 var lastLocalUpdate=null;
 function timeAgo(){var t=market.updated||lastLocalUpdate;if(!t)return"—";var d;try{d=new Date(t);}catch(e){return t;}if(isNaN(d.getTime()))return t;var s=Math.floor((Date.now()-d.getTime())/1000);if(s<60)return"刚刚";if(s<3600)return Math.floor(s/60)+" 分钟前";if(s<86400)return Math.floor(s/3600)+" 小时前";return Math.floor(s/86400)+" 天前";}
 function marketAnchor(model,storage){if(market.anchors){for(var i=0;i<market.anchors.length;i++){var x=market.anchors[i];if(x.model===model&&x.storage===storage)return x;}}return anchorFor(model,storage);}
-function marketMed(model,storage){if(market.comps){var kw=model+" "+storage+"G";for(var i=0;i<market.comps.length;i++){if(market.comps[i].keyword===kw)return market.comps[i].median;}}var cs=compStats(model,storage);return cs&&cs.med?cs.med:null;}
+function marketMed(model,storage){if(market.comps){var kw=model+" "+storage+"G";for(var i=0;i<market.comps.length;i++){if(market.comps[i].keyword===kw)return market.comps[i].median;}}var cs=compStats(model,storage);if(cs&&cs.med)return cs.med;var a=anchorFor(model,storage);return a?Math.round(a.sell_high):null;}
 function refreshBoard(){var btn=$("boardRefreshBtn");if(btn){btn.disabled=true;btn.textContent="刷新中…";}fetch("/api/market").then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}).then(function(d){if(d){market.anchors=d.anchors||null;market.comps=d.comps||null;market.updated=d.last_updated||null;}lastLocalUpdate=new Date().toISOString();renderBoard();if(btn){btn.disabled=false;btn.textContent="刷新行情";}});}
-function boardStorage(){return Number($("boardStorage").value)||128;}
+function aiEvaluate(model,storage,region){var cs=compStats(model,storage);var med=cs&&cs.med?cs.med:null;var sl=(storage===1024?"1T":storage+"G");var text=model+" "+sl+" "+(region||"国行")+"无锁 95新 电池90"+(med?" 标价 "+med:"");showTab("t1");newEval(text);}function boardStorage(){return Number($("boardStorage").value)||128;}
 function boardRegion(){return $("boardRegion").value||"";}
 function boardModels(){var q=($("boardSearch").value||"").trim().toLowerCase();var st=boardStorage();var out=[];Object.keys(MODELS).forEach(function(model){if(q){var hay=(model+" "+st+"G").toLowerCase();if(hay.indexOf(q)<0)return;}out.push(model);});return out;}
-function boardRow(model){var storage=boardStorage(),region=boardRegion();var a=marketAnchor(model,storage);if(!a)return"";var rm=region?(REGION_MULT[region]||1):1;var sellLow=Math.floor(a.sell_low*rm);var maxB=Math.floor(sellLow*(1-CFG.targetMargin)-CFG.shipping);var low=Math.floor(maxB*CFG.buyFloor);var med=marketMed(model,storage);var gap=(med!=null)?Math.round((sellLow-med)/sellLow*100):null;var gapHtml=(gap==null)?'<span class="gap na">数据少</span>':(gap>=0?'<span class="gap up">+'+gap+'%</span>':'<span class="gap down">'+gap+'%</span>');var sl=(storage===1024?"1T":storage+"G");return '<div class="board-row" onclick="openBoardDetail(\''+model+'\', '+storage+', \''+(region||"")+'\')"><div class="bm"><b>'+model+'</b><i>'+sl+(region?' · '+region:'')+'</i></div><div class="bc"><b>市场挂价</b><span>'+(med!=null?('¥'+fmt(med)):'—')+'</span></div><div class="bc"><b>建议收购</b><span>¥'+fmt(low)+'~'+fmt(maxB)+'</span></div><div class="bc"><b>回收地板</b><span>¥'+fmt(sellLow)+'</span></div><div class="bc"><b>周转</b><span>'+a.days+'天</span></div><div class="bc">'+gapHtml+'</div></div>';}
+function boardRow(model){var storage=boardStorage(),region=boardRegion();var a=marketAnchor(model,storage);if(!a)return"";var rm=region?(REGION_MULT[region]||1):1;var sellLow=Math.floor(a.sell_low*rm);var maxB=Math.floor(sellLow*(1-CFG.targetMargin)-CFG.shipping);var low=Math.floor(maxB*CFG.buyFloor);var med=marketMed(model,storage);var gap=(med!=null)?Math.round((sellLow-med)/sellLow*100):null;var gapHtml=(gap==null)?'<span class="gap na">—</span>':(gap>=0?'<span class="gap up">+'+gap+'%</span>':'<span class="gap down">'+gap+'%</span>');var sl=(storage===1024?"1T":storage+"G");var rl=region||"国行无锁";return '<div class="board-card" onclick="openBoardDetail(\''+model+'\', '+storage+', \''+(region||"")+'\')"><div class="ph-thumb"></div><div class="bd-main"><div class="bd-name">'+model+'</div><div class="bd-desc">'+sl+' · '+rl+' · 周转约 '+a.days+' 天</div><div class="bd-prices"><span>市场 <b>¥'+(med!=null?fmt(med):'—')+'</b></span><span>建议收购 <b>¥'+fmt(low)+'~'+fmt(maxB)+'</b></span><span>回收地板 <b>¥'+fmt(sellLow)+'</b></span></div></div>'+gapHtml+'<button class="btn-ai" onclick="event.stopPropagation();aiEvaluate(\''+model+'\','+storage+',\''+(region||"")+'\')">AI评估</button></div>';}
 function renderBoard(){$("board").innerHTML=boardModels().map(boardRow).join("")||'<div class="muted">没有匹配的机型</div>';var el=$("boardUpdated");if(el)el.textContent="更新于 "+timeAgo();}
 function openBoardDetail(model,storage,region){var cs=compStats(model,storage);var p={model:model,storage:storage,region:region||"国行",carrier_lock:"无锁",condition_grade:"95新",battery_health:90,screen_state:"原装",repair_history:"无拆修"};p.listed_price=cs&&cs.med?cs.med:null;var text=model+" "+storage+"G "+(region||"国行")+"无锁 95新 电池90 原装 标价 "+(p.listed_price||"");var card=evaluate(p,text);var sl=(storage===1024?"1T":storage+"G");$("boardDetail").innerHTML='<div class="section-title">'+model+' · '+sl+(region?' · '+region:'')+' · 收货建议</div>'+cardHTML(card);$("boardDetail").scrollIntoView({behavior:"smooth",block:"start"});}
 function renderStats(){var n=records.length;var errs=records.filter(function(r){return r.actual>0&&r.pred>0;}).map(function(r){return Math.abs(r.pred-r.actual)/r.actual;});var avgErr=errs.length?(errs.reduce(function(a,b){return a+b;},0)/errs.length*100).toFixed(1):"—";var hits=records.filter(function(r){return r.hit===true;}).length;var hitRate=Math.round(hits/n*100);var days=records.filter(function(r){return r.days>0;}).map(function(r){return r.days;});var avgDays=days.length?Math.round(days.reduce(function(a,b){return a+b;},0)/days.length):"—";$("statGrid").innerHTML='<div class="stat"><b>累计单数</b><span>'+n+'</span></div><div class="stat"><b>平均报价误差</b><span>±'+avgErr+'%</span></div><div class="stat"><b>决策一致率</b><span>'+hitRate+'%</span></div><div class="stat"><b>平均出手天数</b><span>'+avgDays+' 天</span></div>';
