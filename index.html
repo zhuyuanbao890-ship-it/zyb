@@ -99,23 +99,55 @@ ul.clean li{padding:10px 13px;background:#f6f7f9;border-radius:10px;margin:6px 0
 .btn-expand{width:100%;margin-top:8px;background:#f6f7f9;border:1px solid #e8eaee;border-radius:10px;padding:9px;font-size:13px;color:#2563eb;cursor:pointer}
 .btn-expand .caret{font-size:11px}
 .detail{border-top:1px solid #f0f1f3;margin-top:14px;padding-top:4px}
+
+.boardbar{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+.boardbar input{flex:1;min-width:140px;border:1px solid #e3e6ea;border-radius:10px;padding:10px 12px;font-size:14px;background:#fff;color:#1a1a1a}
+.boardbar input:focus{outline:none;border-color:#2563eb}
+.boardbar select{border:1px solid #e3e6ea;border-radius:10px;padding:9px 10px;font-size:13px;background:#fff;color:#374151}
+.board{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.board-row{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e8eaee;border-radius:12px;padding:12px 14px;cursor:pointer}
+.board-row:active{background:#fafbfc}
+.board-row .bm{flex:1;min-width:104px}
+.board-row .bm b{display:block;font-size:14px;color:#1a1a1a}
+.board-row .bm i{font-style:normal;font-size:11px;color:#8a8f98}
+.board-row .bc{text-align:right;min-width:58px}
+.board-row .bc b{display:block;font-size:10px;color:#8a8f98;font-weight:400}
+.board-row .bc span{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;color:#1a1a1a}
+.gap{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.gap.up{background:#e8f7ee;color:#16a34a}
+.gap.down{background:#fee9e9;color:#dc2626}
+.gap.na{background:#f3f4f6;color:#8a8f98}
+#boardDetail{margin-top:16px}
 </style>
 </head>
 <body>
 
 <div class="top">
   <div class="topbar"><div class="name">收机参谋</div><button class="gear" onclick="toggleSettings()">设置</button></div>
-  <div class="tag">二手 iPhone 收货决策工具</div>
+  <div class="tag">二手 iPhone 实时行情 · 收货助手</div>
 </div>
 <nav>
-  <button id="nav1" class="active" onclick="showTab('t1')">评估</button>
-  <button id="nav2" onclick="showTab('t2')">战绩</button>
+  <button id="nav0" class="active" onclick="showTab('t0')">行情</button>
+  <button id="nav1" onclick="showTab('t1')">助手</button>
+  <button id="nav2" onclick="showTab('t2')">记录</button>
 </nav>
 <div class="wrap">
-  <section id="t1">
+    <section id="t0">
+    <div class="hero"><h1>行情看板</h1><p>16 款 iPhone 的实时行情，开工前扫一眼；有目标的机型点进去看收货建议，或到「助手」直接问我。</p></div>
+    <div class="boardbar">
+      <input id="boardSearch" placeholder="搜索机型，如 14 Pro" oninput="renderBoard()">
+      <select id="boardStorage" onchange="renderBoard()"><option value="128">128G</option><option value="256">256G</option><option value="512">512G</option><option value="1024">1T</option></select>
+      <select id="boardRegion" onchange="renderBoard()"><option value="">全部版本</option><option value="国行">国行</option><option value="港版">港版</option><option value="美版">美版</option><option value="日版">日版</option></select>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="demo-note"><span id="boardUpdated">更新于 —</span> · <a class="link" id="boardRefreshBtn" onclick="refreshBoard()">刷新行情</a> · 点击机型看收货建议</div>
+    <div id="boardDetail"></div>
+  </section>
+
+<section id="t1" style="display:none">
     <div class="hero"><h1>这台机，值不值得收？</h1><p>把闲鱼卖家的描述贴进来，我帮你判断能不能收、有没有坑。</p></div>
     <div class="chips">
-      <button class="chip" onclick="newEval('iPhone 13 128G 国行无锁 95新 电池90 无拆修 标价 1250 可小刀')">国行好价</button>
+      <button class="chip" onclick="newEval('客户要一台 iPhone 14 Pro 256G 国行 预算 4000')">客户求购</button>
       <button class="chip" onclick="newEval('13 Pro 2800')">只给型号和价</button>
       <button class="chip" onclick="newEval('iPhone 13 128G 国行 有ID锁 忘记密码 标价 800')">带 ID 锁</button>
       <button class="chip" onclick="newEval('iPhone 13 Pro 128G 国行 95新 电池88 换过屏幕 标价 2100')">换过屏</button>
@@ -129,7 +161,7 @@ ul.clean li{padding:10px 13px;background:#f6f7f9;border-radius:10px;margin:6px 0
       <button class="btn-send" onclick="send()">发送</button>
       <input type="file" id="imgIn" accept="image/*" style="display:none" onchange="screenshotInput(this.files[0])">
     </div>
-    <div class="demo-note">演示数据 · 对话引擎见右上角「设置」</div>
+    <div class="demo-note">行情数据 · 更新于今天 09:00</div>
   </section>
 
   <section id="t2" style="display:none">
@@ -148,7 +180,7 @@ ul.clean li{padding:10px 13px;background:#f6f7f9;border-radius:10px;margin:6px 0
       <div class="muted">候选样例 samples.json</div><input type="file" id="fSamples" accept=".json" onchange="importFile('samples')">
       <div class="muted">行情锚点 anchors.csv</div><input type="file" id="fAnchors" accept=".csv" onchange="importFile('anchors')">
       <div class="muted">知识库 knowledge.json</div><input type="file" id="fKnowledge" accept=".json" onchange="importFile('knowledge')"><div class="muted">历史案例 cases.json</div><input type="file" id="fCases" accept=".json" onchange="importFile('cases')">
-      <div class="muted">导入后替换内置演示数据</div>
+      <div class="muted">导入后替换内置数据</div>
     </div>
   </details>
 </div>
@@ -157,7 +189,7 @@ ul.clean li{padding:10px 13px;background:#f6f7f9;border-radius:10px;margin:6px 0
   <div class="sheet">
     <h3>设置</h3>
     <div class="opt"><label><input type="radio" name="mode" value="auto" checked> 自动（优先 AI，后端未配置时退回规则）</label></div>
-    <div class="opt"><label><input type="radio" name="mode" value="rule"> 纯规则演示（完全本地，不联网）</label></div>
+    <div class="opt"><label><input type="radio" name="mode" value="rule"> 纯规则（完全本地，不联网）</label></div>
     <div class="field"><label>模型</label><input id="setModel" value="deepseek-chat"></div>
     <div class="muted">API Key 由服务端托管，你不需要输入，也不会暴露给访客。</div>
     <div style="margin-top:14px"><button class="btn-primary" style="width:100%;background:#2563eb;color:#fff;border:0;border-radius:12px;padding:13px;font-size:15px;font-weight:600" onclick="saveSettings()">保存</button></div>
@@ -253,7 +285,7 @@ function getSettings(){try{var s=JSON.parse(localStorage.getItem("sm_settings")|
 function toggleSettings(){var o=$("settingsOverlay");o.style.display="block";var s=getSettings();var radios=document.querySelectorAll("input[name=mode]");for(var i=0;i<radios.length;i++){radios[i].checked=(radios[i].value===s.mode);}$("setModel").value=s.model;}
 function closeSettings(){$("settingsOverlay").style.display="none";}
 function saveSettings(){var s=getSettings();var radios=document.querySelectorAll("input[name=mode]");for(var i=0;i<radios.length;i++){if(radios[i].checked){s.mode=radios[i].value;}}s.model=$("setModel").value.trim()||"deepseek-chat";localStorage.setItem("sm_settings",JSON.stringify(s));closeSettings();}
-function showTab(id){$("t1").style.display=(id==="t1")?"":"none";$("t2").style.display=(id==="t2")?"":"none";$("nav1").className=(id==="t1")?"active":"";$("nav2").className=(id==="t2")?"active":"";if(id==="t2")renderStats();}
+function showTab(id){["t0","t1","t2"].forEach(function(x){$(x).style.display=(x===id)?"":"none";$("nav"+x.slice(1)).className=(x===id)?"active":"";});if(id==="t0")renderBoard();if(id==="t2"){renderStats();renderHistory();}}
 function mergeKnown(p){for(var k in p){if(p[k]!=null&&p[k]!=="")known[k]=p[k];}}
 function knownLine(){var parts=[];if(known.model)parts.push(known.model);if(known.storage)parts.push(known.storage+"G");if(known.battery_health!=null)parts.push("电池"+known.battery_health);if(known.region)parts.push(known.region);if(known.carrier_lock)parts.push(known.carrier_lock);if(known.condition_grade)parts.push(known.condition_grade);if(known.listed_price)parts.push("标价"+known.listed_price);return parts.length?("已了解："+parts.join(" · ")):"";}
 function addUser(t){var d=document.createElement("div");d.className="msg user";d.textContent=t;$("chat").appendChild(d);}
@@ -270,7 +302,7 @@ var got=knownLine();var ack=got?("好，"+got+"。还差几点："):"好，先�
 function newEval(t){known={};context="";$("statusLine").textContent="";sendMsg(t);}
 function send(){var t=$("chatInput").value.trim();if(!t)return;$("chatInput").value="";sendMsg(t);}
 function voiceInput(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert("此浏览器不支持语音输入，请打字或发截图");return;}var r=new SR();r.lang="zh-CN";r.interimResults=false;r.onresult=function(e){var t=(e.results[0]&&e.results[0][0]&&e.results[0][0].transcript)||"";if(t){$("chatInput").value=t;send();}};r.onerror=function(){alert("语音识别没听清，请打字或发截图");};try{r.start();}catch(e){alert("语音输入启动失败："+e.message);}}
-function screenshotInput(file){if(!file)return;addBot("收到图片「"+file.name+"」。当前演示版未接入 OCR；生产版会自动识别图中机型/价格/成色。请先用打字或语音告诉我这台机的信息。");}
+function screenshotInput(file){if(!file)return;addBot("收到图片「"+file.name+"」。截图识别需要 OCR / 多模态，目前暂未接入；先用打字或语音告诉我这台机的信息。");}
 function dimUI(dim){var s=dim.score;var label,exp;
 if(dim.dim==="价差空间"){label="利润空间";exp=s>=1?"利润够，能下手":s>=0.7?"利润一般，先砍价":"利润太薄，别收";}
 else if(dim.dim==="流动性/周转"){label="好不好出手";exp=s>=1?"好出手，几天能卖":s>=0.7?"正常，两三周内":"难卖，会压货";}
@@ -308,31 +340,28 @@ h+='<div style="margin-top:14px"><a class="link" onclick="toggleRec()">这单后
 h+='<div class="recform" id="recForm" style="display:none"><div class="row"><label>实际卖出价（元）</label><input type="number" id="rfSell"></div><div class="row"><label>实际收购价（元）</label><input type="number" id="rfBuy"></div><div class="row"><label>持有天数</label><input type="number" id="rfDays"></div><div class="row"><label>备注</label><input type="text" id="rfNote" placeholder="比如：被买家认出换屏，压了价"></div><button style="width:100%;background:#2563eb;color:#fff;border:0;border-radius:12px;padding:12px;font-size:15px;font-weight:600" onclick="saveRec()">保存</button></div>';
 h+='</div>';
 h+='</div>';return h;}
-h+='<span class="verdict '+V_CLS[c.verdict]+'">'+V_TEXT[c.verdict]+'</span>';
-h+='<div class="item-line">'+esc(it.model||"未识别机型")+(it.storage?" · "+it.storage+"G":"")+(it.listed_price?" · 标价 "+fmt(it.listed_price)+" 元":"")+'</div>';
-var cs=compStats(it.model,it.storage);if(cs&&cs.n>0){h+='<div class="comp-line"><b>同款行情</b> · 在售 '+cs.n+' 台 · 中位标价 ¥'+fmt(cs.med)+' · 最低 ¥'+fmt(cs.min)+'</div>';}
-h+='<div class="price-hero"><div class="label">建议收购价</div><div class="num">'+(c.suggested_buy_range&&c.suggested_buy_range.length?fmt(c.suggested_buy_range[0])+" ~ "+fmt(c.suggested_buy_range[1]):"—")+' <small>元</small></div></div>';
-h+='<div class="metrics">';
-if(c.expected_sell){h+='<div class="metric"><b>预期出手价</b><span>'+fmt(c.expected_sell.price_low)+" ~ "+fmt(c.expected_sell.price_high)+'</span></div>';h+='<div class="metric"><b>预计出手天数</b><span>'+c.expected_sell.days+' 天</span></div>';}
-if(c.margin_estimate){h+='<div class="metric"><b>预估利润</b><span>'+fmt(c.margin_estimate.profit)+' 元</span></div>';h+='<div class="metric"><b>利润率</b><span>'+Math.round(c.margin_estimate.ratio*100)+'%</span></div>';}
-h+='</div>';
-h+='<div class="dims">';c.dimension_scores.forEach(function(d){var u=dimUI(d);h+='<div class="dim"><div class="head"><span>'+u.label+'</span><i>'+Math.round(d.score*100)+'</i></div><div class="bar"><b style="width:'+Math.round(d.score*100)+'%"></b></div><div class="exp">'+u.exp+'</div></div>';});h+='</div>';
-h+='<div class="section-title">有什么坑</div>';
-if(c.risks&&c.risks.length){h+='<ul class="clean">';c.risks.forEach(function(r){h+='<li class="'+(r.level==="high"?"risk-high":r.level==="medium"?"risk-medium":"")+'">'+esc(r.type)+'</li>';});h+='</ul>';}else{h+='<ul class="clean"><li>描述里没看到明显风险词，建议面交时再验一遍</li></ul>';}
-h+='<div class="section-title">要问卖家什么</div><ul class="clean">';c.seller_notes.forEach(function(m){h+='<li>'+esc(m)+'</li>';});h+='</ul>';
-var cases=retrieveCases(c.item,c.risks);if(cases&&cases.length){h+='<div class="section-title">历史案例参考</div>';cases.forEach(function(x){h+='<div class="record"><div class="top"><b>'+esc(x.model)+(x.storage?' '+x.storage+'G':'')+'</b><span class="mini-badge '+(x.hit?'buy':'watch')+'">'+(x.hit?'赚了':'没赚')+'</span></div><div class="nums">收购 ¥'+fmt(x.buy)+' → 卖出 ¥'+fmt(x.sell)+' · 持有 '+x.days+' 天</div><div class="nums" style="color:#6b7280">'+esc(x.lesson||x.note)+'</div></div>';});}h+='<div style="margin-top:14px"><a class="link" onclick="toggleRec()">这单后来卖了多少？记一笔</a></div>';
-h+='<div class="recform" id="recForm" style="display:none"><div class="row"><label>实际卖出价（元）</label><input type="number" id="rfSell"></div><div class="row"><label>实际收购价（元）</label><input type="number" id="rfBuy"></div><div class="row"><label>持有天数</label><input type="number" id="rfDays"></div><div class="row"><label>备注</label><input type="text" id="rfNote" placeholder="比如：被买家认出换屏，压了价"></div><button style="width:100%;background:#2563eb;color:#fff;border:0;border-radius:12px;padding:12px;font-size:15px;font-weight:600" onclick="saveRec()">保存</button></div>';
-h+='</div>';return h;}
 function addCard(c){var d=document.createElement("div");d.className="msg bot";d.style.maxWidth="100%";var w=document.createElement("div");w.innerHTML=cardHTML(c);d.appendChild(w);$("chat").appendChild(d);scrollChat();}
 function toggleRec(){var f=$("recForm");if(f)f.style.display=(f.style.display==="none")?"":"none";}
 function saveRec(){if(!lastCard){return;}var sell=parseFloat($("rfSell").value);var buy=parseFloat($("rfBuy").value);var days=parseInt($("rfDays").value,10)||0;var note=$("rfNote").value.trim();if(!sell){alert("先填实际卖出价");return;}var pred=lastCard.expected_sell?lastCard.expected_sell.price_low:null;var hit;if(lastCard.verdict==="buy"){hit=buy>0?sell>buy:true;}else{hit=true;}records.push({model:(lastCard.item.model||"未识别")+(lastCard.item.storage?" "+lastCard.item.storage+"G":""),verdict:lastCard.verdict,pred:pred,actual:sell,buy:buy||0,days:days,hit:hit,note:note||"用户记录"});toggleRec();if(history.length){history[0].status="已卖出";history[0].sell=sell;history[0].buy=buy||0;history[0].days=days;}renderStats();renderHistory();}
 function renderHistory(){var h="";history.forEach(function(x){var st=x.status||"已评估";h+='<div class="record"><div class="top"><b>'+esc(x.model||"未识别")+(x.storage?' '+x.storage+'G':'')+(x.listed?' · 标价 ¥'+fmt(x.listed):'')+'</b><span class="mini-badge '+V_CLS[x.verdict]+'">'+V_TEXT[x.verdict]+'</span></div><div class="nums">'+st+(x.sell?' · 卖出 ¥'+fmt(x.sell):'')+'</div></div>';});$("historyList").innerHTML=h||'<div class="muted">还没有评估记录</div>';}
+var market={anchors:null,comps:null,updated:null};
+var lastLocalUpdate=null;
+function timeAgo(){var t=market.updated||lastLocalUpdate;if(!t)return"—";var d;try{d=new Date(t);}catch(e){return t;}if(isNaN(d.getTime()))return t;var s=Math.floor((Date.now()-d.getTime())/1000);if(s<60)return"刚刚";if(s<3600)return Math.floor(s/60)+" 分钟前";if(s<86400)return Math.floor(s/3600)+" 小时前";return Math.floor(s/86400)+" 天前";}
+function marketAnchor(model,storage){if(market.anchors){for(var i=0;i<market.anchors.length;i++){var x=market.anchors[i];if(x.model===model&&x.storage===storage)return x;}}return anchorFor(model,storage);}
+function marketMed(model,storage){if(market.comps){var kw=model+" "+storage+"G";for(var i=0;i<market.comps.length;i++){if(market.comps[i].keyword===kw)return market.comps[i].median;}}var cs=compStats(model,storage);return cs&&cs.med?cs.med:null;}
+function refreshBoard(){var btn=$("boardRefreshBtn");if(btn){btn.disabled=true;btn.textContent="刷新中…";}fetch("/api/market").then(function(r){return r.ok?r.json():null;}).catch(function(){return null;}).then(function(d){if(d){market.anchors=d.anchors||null;market.comps=d.comps||null;market.updated=d.last_updated||null;}lastLocalUpdate=new Date().toISOString();renderBoard();if(btn){btn.disabled=false;btn.textContent="刷新行情";}});}
+function boardStorage(){return Number($("boardStorage").value)||128;}
+function boardRegion(){return $("boardRegion").value||"";}
+function boardModels(){var q=($("boardSearch").value||"").trim().toLowerCase();var st=boardStorage();var out=[];Object.keys(MODELS).forEach(function(model){if(q){var hay=(model+" "+st+"G").toLowerCase();if(hay.indexOf(q)<0)return;}out.push(model);});return out;}
+function boardRow(model){var storage=boardStorage(),region=boardRegion();var a=marketAnchor(model,storage);if(!a)return"";var rm=region?(REGION_MULT[region]||1):1;var sellLow=Math.floor(a.sell_low*rm);var maxB=Math.floor(sellLow*(1-CFG.targetMargin)-CFG.shipping);var low=Math.floor(maxB*CFG.buyFloor);var med=marketMed(model,storage);var gap=(med!=null)?Math.round((sellLow-med)/sellLow*100):null;var gapHtml=(gap==null)?'<span class="gap na">数据少</span>':(gap>=0?'<span class="gap up">+'+gap+'%</span>':'<span class="gap down">'+gap+'%</span>');var sl=(storage===1024?"1T":storage+"G");return '<div class="board-row" onclick="openBoardDetail(\''+model+'\', '+storage+', \''+(region||"")+'\')"><div class="bm"><b>'+model+'</b><i>'+sl+(region?' · '+region:'')+'</i></div><div class="bc"><b>市场挂价</b><span>'+(med!=null?('¥'+fmt(med)):'—')+'</span></div><div class="bc"><b>建议收购</b><span>¥'+fmt(low)+'~'+fmt(maxB)+'</span></div><div class="bc"><b>回收地板</b><span>¥'+fmt(sellLow)+'</span></div><div class="bc"><b>周转</b><span>'+a.days+'天</span></div><div class="bc">'+gapHtml+'</div></div>';}
+function renderBoard(){$("board").innerHTML=boardModels().map(boardRow).join("")||'<div class="muted">没有匹配的机型</div>';var el=$("boardUpdated");if(el)el.textContent="更新于 "+timeAgo();}
+function openBoardDetail(model,storage,region){var cs=compStats(model,storage);var p={model:model,storage:storage,region:region||"国行",carrier_lock:"无锁",condition_grade:"95新",battery_health:90,screen_state:"原装",repair_history:"无拆修"};p.listed_price=cs&&cs.med?cs.med:null;var text=model+" "+storage+"G "+(region||"国行")+"无锁 95新 电池90 原装 标价 "+(p.listed_price||"");var card=evaluate(p,text);var sl=(storage===1024?"1T":storage+"G");$("boardDetail").innerHTML='<div class="section-title">'+model+' · '+sl+(region?' · '+region:'')+' · 收货建议</div>'+cardHTML(card);$("boardDetail").scrollIntoView({behavior:"smooth",block:"start"});}
 function renderStats(){var n=records.length;var errs=records.filter(function(r){return r.actual>0&&r.pred>0;}).map(function(r){return Math.abs(r.pred-r.actual)/r.actual;});var avgErr=errs.length?(errs.reduce(function(a,b){return a+b;},0)/errs.length*100).toFixed(1):"—";var hits=records.filter(function(r){return r.hit===true;}).length;var hitRate=Math.round(hits/n*100);var days=records.filter(function(r){return r.days>0;}).map(function(r){return r.days;});var avgDays=days.length?Math.round(days.reduce(function(a,b){return a+b;},0)/days.length):"—";$("statGrid").innerHTML='<div class="stat"><b>累计单数</b><span>'+n+'</span></div><div class="stat"><b>平均报价误差</b><span>±'+avgErr+'%</span></div><div class="stat"><b>决策一致率</b><span>'+hitRate+'%</span></div><div class="stat"><b>平均出手天数</b><span>'+avgDays+' 天</span></div>';
 var pa="";records.filter(function(r){return r.actual>0;}).forEach(function(r){var diff=r.pred>0?Math.round((r.actual-r.pred)/r.pred*100):0;pa+='<div class="record"><div class="top"><b>'+esc(r.model)+'</b><span class="mini-badge '+V_CLS[r.verdict]+'">'+V_TEXT[r.verdict]+'</span></div><div class="nums">预测 ¥'+fmt(r.pred)+' → 实际 ¥'+fmt(r.actual)+'（'+(diff>=0?"+":"")+diff+'%）</div></div>';});$("predActual").innerHTML=pa||'<div class="muted">还没有成交记录</div>';
 var rl="";records.slice().reverse().forEach(function(r){var line=(r.actual>0)?("收购 ¥"+fmt(r.buy)+" · 卖出 ¥"+fmt(r.actual)+" · 持有 "+r.days+" 天"):"未收（避坑）";rl+='<div class="record"><div class="top"><b>'+esc(r.model)+'</b><span class="mini-badge '+V_CLS[r.verdict]+'">'+V_TEXT[r.verdict]+'</span></div><div class="nums">'+line+' · '+esc(r.note)+'</div></div>';});$("recList").innerHTML=rl||'<div class="muted">暂无记录</div>';}
 function importFile(kind){var el={samples:$("fSamples"),anchors:$("fAnchors"),knowledge:$("fKnowledge"),cases:$("fCases")}[kind];var f=el.files[0];if(!f)return;var r=new FileReader();r.onload=function(){var txt=String(r.result);try{if(kind==="samples"){DATA.samples=JSON.parse(txt);}else if(kind==="anchors"){DATA.anchors=txt.split(/\r?\n/).slice(1).filter(Boolean).map(function(l){var c=l.split(",");return{model:c[0],storage:+c[1],sell_low:+c[2],sell_high:+c[3],days:+c[4],source:c[5]||"CSV"};});}else if(kind==="cases"){CASES=JSON.parse(txt);}else{DATA.knowledge=JSON.parse(txt);}alert("已导入 "+kind+" 数据");}catch(e){alert("文件格式不对："+e.message);}};r.readAsText(f,"utf-8");}
-addBot("发一条闲鱼描述，或者只给我几句（机型、价格、电池这些），缺什么我会问你。");
-renderStats();
+addBot("开工先扫一眼「行情」看板；有客户求购或具体机器，直接发我，缺什么我会问。");
+lastLocalUpdate=new Date().toISOString();renderBoard();renderStats();renderHistory();
 
 </script>
 </body>
